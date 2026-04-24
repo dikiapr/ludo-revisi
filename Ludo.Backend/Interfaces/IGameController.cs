@@ -11,7 +11,7 @@ public interface IGameController
     event Action<IPiece, IPiece>? OnPieceCaptured;
     event Action? onGameFinished;
 
-    void StartGame();
+    void StartGame(List<IPlayer> players);
     int RollDice();
 
     IPlayer GetCurrentPlayer();

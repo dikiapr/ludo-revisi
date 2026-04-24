@@ -24,7 +24,7 @@ public class GameController : IGameController
     private readonly List<IPlayer> _players;
 
     // ── State ────────────────────────────────────────────────────────────────
-    private Dictionary<PlayerColor, List<IPiece>> _pieces = new();
+    private Dictionary<PlayerColor, List<IPiece>> _pieces;
     private int _lastDiceRoll;
     private bool _bonusTurn; // rolling 6 → giliran ekstra
 
@@ -72,20 +72,24 @@ public class GameController : IGameController
 
     // ── Constructor ──────────────────────────────────────────────────────────
 
-    public GameController(IBoard board, IDice dice, List<IPlayer> players)
+    public GameController(IBoard board, IDice dice)
     {
         _board = board ?? throw new ArgumentNullException(nameof(board));
         _dice = dice ?? throw new ArgumentNullException(nameof(dice));
-        _players = players ?? throw new ArgumentNullException(nameof(players));
-        if (players.Count < 2 || players.Count > 4)
-            throw new ArgumentException("Ludo memerlukan 2-4 pemain.", nameof(players));
+        _players = new List<IPlayer>();
+        _pieces = new Dictionary<PlayerColor, List<IPiece>>();
     }
 
     // ── IGameController Implementation ───────────────────────────────────────
 
     /// <summary>Inisialisasi ulang semua bidak dan mulai permainan.</summary>
-    public void StartGame()
+    public void StartGame(List<IPlayer> players)
     {
+        if (players == null || players.Count < 2 || players.Count > 4)
+            throw new ArgumentException("Ludo memerlukan 2-4 pemain.", nameof(players));
+        _players.Clear();
+        _players.AddRange(players);
+
         _pieces.Clear();
         foreach (var player in _players)
         {

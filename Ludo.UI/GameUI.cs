@@ -14,8 +14,13 @@ namespace Ludo.UI;
 /// </summary>
 public class GameUI
 {
-    // ── State ────────────────────────────────────────────────────────────────
-    private Board _board = null!;
+    // ── Dependencies (Dependency Injection) ─────────────────────────────────
+    private readonly IGameController _gc;
+
+    public GameUI(IGameController gc)
+    {
+        _gc = gc ?? throw new ArgumentNullException(nameof(gc));
+    }
 
     // ── Konstanta warna ──────────────────────────────────────────────────────
     private static readonly Dictionary<PlayerColor, ConsoleColor> ColorMap = new()
@@ -47,24 +52,20 @@ public class GameUI
         {
             DisplayWelcome();
 
-            // Setup pemain
+            // Setup pemain (input dari user)
             int numPlayers = AskNumberOfPlayers();
             var players = CreatePlayers(numPlayers);
 
-            // Setup backend
-            _board = new Board();
-            IDice dice = new Dice();
-            var gc = new GameController(_board, dice, players);
-
-            // Subscribe events
-            gc.OnPieceCaptured += (attacker, victim) =>
+            // Subscribe events (backend sudah di-inject via constructor)
+            _gc.OnPieceCaptured += (attacker, victim) =>
                 ShowCapture(attacker, victim);
-            gc.onGameFinished += () =>
-                ShowVictory(gc);
+            _gc.onGameFinished += () =>
+                ShowVictory(_gc);
 
-            gc.StartGame();
+            // Mulai game dengan players yang sudah dibuat
+            _gc.StartGame(players);
 
-            GameLoop(gc);
+            GameLoop(_gc);
         }
         finally
         {
@@ -75,7 +76,7 @@ public class GameUI
 
     // ── Game Loop ─────────────────────────────────────────────────────────────
 
-    private void GameLoop(GameController gc)
+    private void GameLoop(IGameController gc)
     {
         while (!gc.IsGameOver)
         {
@@ -136,7 +137,7 @@ public class GameUI
 
     // ── Input Helper ─────────────────────────────────────────────────────────
 
-    private IPiece PickPiece(GameController gc, IList<IPiece> movable, IPlayer player)
+    private IPiece PickPiece(IGameController gc, IList<IPiece> movable, IPlayer player)
     {
         Console.WriteLine();
         Console.WriteLine("  Pilih bidak yang ingin digerakkan:");
@@ -195,7 +196,7 @@ public class GameUI
     // ── Board Rendering ───────────────────────────────────────────────────────
 
     /// <summary>Gambar papan Ludo 15×15 dengan posisi semua bidak saat ini.</summary>
-    private void DrawBoard(GameController gc)
+    private void DrawBoard(IGameController gc)
     {
         // Bangun lookup: (X,Y) → list simbol bidak
         var pieceMap = BuildPieceMap(gc);
@@ -209,7 +210,7 @@ public class GameUI
             Console.Write($"  ║{row,2} ");
             for (int col = 0; col < Board.Size; col++)
             {
-                var tile = _board.Grid[row, col];
+                var tileType = DetermineTileType(row, col);
                 var key = (col, row);
 
                 if (pieceMap.TryGetValue(key, out var symbols) && symbols.Count > 0)
@@ -229,17 +230,16 @@ public class GameUI
                 else
                 {
                     // Tile kosong
-                    string cell = tile.Type switch
+                    string cell = tileType switch
                     {
                         TileTypes.Base => "██ ",
                         TileTypes.Finish => " F ",
                         TileTypes.Normal => " · ",
                         _ => "   ",
                     };
-                    ConsoleColor tileColor = tile.Type switch
+                    ConsoleColor tileColor = tileType switch
                     {
                         TileTypes.Finish => ConsoleColor.Magenta,
-                        TileTypes.Normal => ConsoleColor.DarkGray,
                         _ => ConsoleColor.DarkGray,
                     };
                     WriteColored(cell, tileColor);
@@ -253,7 +253,7 @@ public class GameUI
     }
 
     /// <summary>Bangun map posisi → daftar (simbol, warna) dari semua bidak aktif/finished.</summary>
-    private Dictionary<(int X, int Y), List<(string display, ConsoleColor color)>> BuildPieceMap(GameController gc)
+    private Dictionary<(int X, int Y), List<(string display, ConsoleColor color)>> BuildPieceMap(IGameController gc)
     {
         var map = new Dictionary<(int, int), List<(string, ConsoleColor)>>();
 
@@ -280,7 +280,7 @@ public class GameUI
 
     // ── Status Panel ──────────────────────────────────────────────────────────
 
-    private void DrawStatus(GameController gc)
+    private void DrawStatus(IGameController gc)
     {
         Console.WriteLine("  ┌─── STATUS PEMAIN ────────────────────────────────────┐");
 
@@ -341,7 +341,7 @@ public class GameUI
         Thread.Sleep(1000);
     }
 
-    private void ShowVictory(GameController gc)
+    private void ShowVictory(IGameController gc)
     {
         Console.Clear();
         Console.WriteLine();
@@ -398,8 +398,31 @@ public class GameUI
         Console.ReadLine();
     }
 
+    /// <summary>
+    /// Tentukan tipe tile berdasarkan koordinat — layout Ludo selalu tetap.
+    /// Tidak perlu akses Board/IBoard sama sekali.
+    /// </summary>
+    private static TileTypes DetermineTileType(int row, int col)
+    {
+        // Area tengah 3×3 = Finish
+        if (row >= 6 && row <= 8 && col >= 6 && col <= 8)
+            return TileTypes.Finish;
+
+        // Area base di 4 sudut (4×4 tiap warna)
+        if (row >= 1 && row <= 4 && col >= 1 && col <= 4) return TileTypes.Base; // Red
+        if (row >= 1 && row <= 4 && col >= 10 && col <= 13) return TileTypes.Base; // Blue
+        if (row >= 10 && row <= 13 && col >= 1 && col <= 4) return TileTypes.Base; // Green
+        if (row >= 10 && row <= 13 && col >= 10 && col <= 13) return TileTypes.Base; // Yellow
+
+        // Jalur utama (cross shape)
+        if (row >= 6 && row <= 8) return TileTypes.Normal;
+        if (col >= 6 && col <= 8) return TileTypes.Normal;
+
+        return TileTypes.Normal;
+    }
+
     /// <summary>Dapatkan index bidak dalam daftar milik warnanya.</summary>
-    private static int PieceIndex(GameController gc, IPiece piece)
+    private static int PieceIndex(IGameController gc, IPiece piece)
     {
         var list = gc.GetAllPieces()[piece.Color];
         for (int i = 0; i < list.Count; i++)
