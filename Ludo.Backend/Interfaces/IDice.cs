@@ -4,5 +4,5 @@ namespace Ludo.Backend.Interfaces;
 
 public interface IDice
 {
-    int Value { get; set; }
+    int Roll();
 }

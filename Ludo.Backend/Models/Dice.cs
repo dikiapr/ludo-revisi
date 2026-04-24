@@ -4,13 +4,20 @@ namespace Ludo.Backend.Models;
 
 public class Dice : IDice
 {
-    private readonly Random _random = new();
+    private readonly Random _random;
 
-    public int Value { get; set; }
+    public Dice()
+    {
+        _random = new Random();
+    }
+
+    public Dice(int seed)
+    {
+        _random = new Random(seed);
+    }
 
     public int Roll()
     {
-        Value = _random.Next(1, 7);
-        return Value;
+        return _random.Next(1, 7);
     }
 }
