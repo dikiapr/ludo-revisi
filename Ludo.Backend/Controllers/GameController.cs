@@ -91,18 +91,18 @@ public class GameController : IGameController
         _players.AddRange(players);
 
         _pieces.Clear();
-        foreach (var player in _players)
+        foreach (IPlayer player in _players)
         {
-            var bases = BasePositions[player.Color];
-            var list = new List<IPiece>();
+            Position[] bases = BasePositions[player.Color];
+            List<IPiece> list = new List<IPiece>();
             for (int i = 0; i < 4; i++)
                 list.Add(new Piece(player.Color, new Position(bases[i].X, bases[i].Y)));
             _pieces[player.Color] = list;
         }
 
         // Tempatkan bidak pada tile base di grid board
-        foreach (var (color, pieces) in _pieces)
-            foreach (var piece in pieces)
+        foreach ((PlayerColor color, List<IPiece> pieces) in _pieces)
+            foreach (IPiece piece in pieces)
                 AddPieceToTile(piece.CurrentPosition, piece);
 
         CurrentPlayerIndex = 0;
@@ -120,7 +120,11 @@ public class GameController : IGameController
     }
 
     /// <summary>Dapatkan pemain yang sedang giliran.</summary>
-    public IPlayer GetCurrentPlayer() => _players[CurrentPlayerIndex];
+    public IPlayer GetCurrentPlayer()
+    {
+        IPlayer currentPlayer = _players[CurrentPlayerIndex];
+        return currentPlayer;
+    }
 
     /// <summary>
     /// Dapatkan daftar bidak yang bisa digerakkan berdasarkan hasil dadu terakhir.
@@ -129,12 +133,15 @@ public class GameController : IGameController
     /// </summary>
     public IList<IPiece> GetMovablePieces()
     {
-        var color = GetCurrentPlayer().Color;
-        var result = new List<IPiece>();
+        PlayerColor color = GetCurrentPlayer().Color;
+        List<IPiece> result = new List<IPiece>();
 
-        foreach (var piece in _pieces[color])
+        foreach (IPiece piece in _pieces[color])
         {
-            if (piece.State == PieceState.Finished) continue;
+            if (piece.State == PieceState.Finished)
+            {
+                continue;
+            }
 
             if (piece.State == PieceState.Base)
             {
@@ -158,7 +165,8 @@ public class GameController : IGameController
     {
         if (movablePieces == null || movablePieces.Count == 0)
             throw new InvalidOperationException("Tidak ada bidak yang bisa digerakkan.");
-        return movablePieces[0];
+        IPiece chosen = movablePieces[0];
+        return chosen;
     }
 
     /// <summary>
@@ -168,7 +176,7 @@ public class GameController : IGameController
     /// </summary>
     public void MovePiece(IPlayer player, IPiece piece, int steps)
     {
-        var oldPos = new Position(piece.CurrentPosition.X, piece.CurrentPosition.Y);
+        Position oldPos = new Position(piece.CurrentPosition.X, piece.CurrentPosition.Y);
 
         if (piece.State == PieceState.Base)
         {
@@ -223,10 +231,17 @@ public class GameController : IGameController
         CurrentPlayerIndex = (CurrentPlayerIndex + 1) % _players.Count;
     }
 
-    public IList<IPlayer> GetPlayers() => _players.AsReadOnly();
+    public IList<IPlayer> GetPlayers()
+    {
+        IList<IPlayer> players = _players.AsReadOnly();
+        return players;
+    }
 
-    public IDictionary<PlayerColor, IList<IPiece>> GetAllPieces() =>
-        _pieces.ToDictionary(kvp => kvp.Key, kvp => (IList<IPiece>)kvp.Value);
+    public IDictionary<PlayerColor, IList<IPiece>> GetAllPieces()
+    {
+        IDictionary<PlayerColor, IList<IPiece>> allPieces = _pieces.ToDictionary(kvp => kvp.Key, kvp => (IList<IPiece>)kvp.Value);
+        return allPieces;
+    }
 
     /// <summary>Paksa akhiri permainan.</summary>
     public void EndGame()
@@ -247,30 +262,32 @@ public class GameController : IGameController
     {
         if (step >= 52)
         {
-            var homeCol = HomeColumns[color];
-            return homeCol[step - 52];
+            Position[] homeCol = HomeColumns[color];
+            Position homePosition = homeCol[step - 52];
+            return homePosition;
         }
 
         int trackIndex = (StartOffsets[color] + step) % 52;
-        var raw = MainTrack[trackIndex];
-        return new Position(raw.X, raw.Y);
+        Position raw = MainTrack[trackIndex];
+        Position trackPosition = new Position(raw.X, raw.Y);
+        return trackPosition;
     }
 
     /// <summary>Cek apakah ada bidak lawan di posisi yang sama → tangkap.</summary>
     private void CheckCapture(IPlayer currentPlayer, IPiece movingPiece)
     {
-        var pos = movingPiece.CurrentPosition;
-        var posKey = (pos.X, pos.Y);
+        Position pos = movingPiece.CurrentPosition;
+        (int X, int Y) posKey = (pos.X, pos.Y);
 
         // Kotak aman: tidak bisa menangkap
         if (SafeSquares.Contains(posKey)) return;
 
-        foreach (var player in _players)
+        foreach (IPlayer player in _players)
         {
             if (player.Color == currentPlayer.Color) continue;
             if (!_pieces.ContainsKey(player.Color)) continue;
 
-            foreach (var piece in _pieces[player.Color])
+            foreach (IPiece piece in _pieces[player.Color])
             {
                 if (piece.State != PieceState.Active) continue;
                 if (piece.CurrentStep >= 52) continue; // Home column = aman
@@ -281,7 +298,7 @@ public class GameController : IGameController
                     RemovePieceFromTile(piece.CurrentPosition, piece);
 
                     int pieceIndex = _pieces[player.Color].IndexOf(piece);
-                    var basePos = BasePositions[player.Color][pieceIndex];
+                    Position basePos = BasePositions[player.Color][pieceIndex];
                     piece.CurrentPosition = new Position(basePos.X, basePos.Y);
                     piece.CurrentStep = -1;
                     piece.State = PieceState.Base;
@@ -294,8 +311,11 @@ public class GameController : IGameController
     }
 
     /// <summary>Cek apakah semua 4 bidak pemain sudah Finished.</summary>
-    private bool HasPlayerWon(IPlayer player) =>
-        _pieces[player.Color].All(p => p.State == PieceState.Finished);
+    private bool HasPlayerWon(IPlayer player)
+    {
+        bool hasWon = _pieces[player.Color].All(p => p.State == PieceState.Finished);
+        return hasWon;
+    }
 
     /// <summary>Tambahkan bidak ke tile pada koordinat (X=col, Y=row) di grid board.</summary>
     private void AddPieceToTile(Position pos, IPiece piece)
@@ -311,8 +331,11 @@ public class GameController : IGameController
             _board.Grid[pos.Y, pos.X].Pieces.Remove(piece);
     }
 
-    private static bool IsValidTilePos(Position pos) =>
-        pos.X >= 0 && pos.X < Board.Size && pos.Y >= 0 && pos.Y < Board.Size;
+    private static bool IsValidTilePos(Position pos)
+    {
+        bool isValid = pos.X >= 0 && pos.X < Board.Size && pos.Y >= 0 && pos.Y < Board.Size;
+        return isValid;
+    }
 
     // ── Static Path Builders ─────────────────────────────────────────────────
 
@@ -340,7 +363,7 @@ public class GameController : IGameController
     /// </summary>
     private static Position[] BuildMainTrack()
     {
-        var track = new List<Position>();
+        List<Position> track = new List<Position>();
 
         // Seg A: Left arm top edge → right
         for (int col = 1; col <= 5; col++) track.Add(new Position(col, 6));
@@ -385,7 +408,8 @@ public class GameController : IGameController
         if (track.Count != 52)
             throw new InvalidOperationException($"Main track harus 52 kotak, tapi {track.Count}.");
 
-        return track.ToArray();
+        Position[] result = track.ToArray();
+        return result;
     }
 
     /// <summary>
@@ -398,7 +422,7 @@ public class GameController : IGameController
     /// </summary>
     private static Dictionary<PlayerColor, Position[]> BuildHomeColumns()
     {
-        return new Dictionary<PlayerColor, Position[]>
+        Dictionary<PlayerColor, Position[]> homeColumns = new Dictionary<PlayerColor, Position[]>
         {
             {
                 PlayerColor.Red, new[]
@@ -429,5 +453,6 @@ public class GameController : IGameController
                 }
             },
         };
+        return homeColumns;
     }
 }

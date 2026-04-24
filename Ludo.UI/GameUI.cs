@@ -15,11 +15,11 @@ namespace Ludo.UI;
 public class GameUI
 {
     // ── Dependencies (Dependency Injection) ─────────────────────────────────
-    private readonly IGameController _gc;
+    private readonly IGameController _gameController;
 
-    public GameUI(IGameController gc)
+    public GameUI(IGameController gameController)
     {
-        _gc = gc ?? throw new ArgumentNullException(nameof(gc));
+        _gameController = gameController ?? throw new ArgumentNullException(nameof(gameController));
     }
 
     // ── Konstanta warna ──────────────────────────────────────────────────────
@@ -57,15 +57,15 @@ public class GameUI
             var players = CreatePlayers(numPlayers);
 
             // Subscribe events (backend sudah di-inject via constructor)
-            _gc.OnPieceCaptured += (attacker, victim) =>
+            _gameController.OnPieceCaptured += (attacker, victim) =>
                 ShowCapture(attacker, victim);
-            _gc.onGameFinished += () =>
-                ShowVictory(_gc);
+            _gameController.onGameFinished += () =>
+                ShowVictory(_gameController);
 
             // Mulai game dengan players yang sudah dibuat
-            _gc.StartGame(players);
+            _gameController.StartGame(players);
 
-            GameLoop(_gc);
+            GameLoop(_gameController);
         }
         finally
         {
@@ -76,32 +76,32 @@ public class GameUI
 
     // ── Game Loop ─────────────────────────────────────────────────────────────
 
-    private void GameLoop(IGameController gc)
+    private void GameLoop(IGameController gameController)
     {
-        while (!gc.IsGameOver)
+        while (!gameController.IsGameOver)
         {
             Console.Clear();
-            DrawBoard(gc);
-            DrawStatus(gc);
+            DrawBoard(gameController);
+            DrawStatus(gameController);
 
-            var currentPlayer = gc.GetCurrentPlayer();
+            var currentPlayer = gameController.GetCurrentPlayer();
             PrintLine();
             WriteColored($"  Giliran: {currentPlayer.Name} ", ColorMap[currentPlayer.Color]);
             Console.WriteLine("— tekan [ENTER] untuk lempar dadu...");
             WaitEnter();
 
             // Roll dadu
-            int roll = gc.RollDice();
+            int roll = gameController.RollDice();
             DrawDice(roll);
 
             // Dapatkan bidak yang bisa bergerak
-            var movable = gc.GetMovablePieces();
+            var movable = gameController.GetMovablePieces();
 
             if (movable.Count == 0)
             {
                 WriteColored($"  Tidak ada bidak yang bisa bergerak (dadu: {roll}).\n", ConsoleColor.DarkGray);
                 Thread.Sleep(1200);
-                gc.NextTurn();
+                gameController.NextTurn();
                 continue;
             }
 
@@ -110,18 +110,18 @@ public class GameUI
             if (movable.Count == 1)
             {
                 chosen = movable[0];
-                WriteColored($"  Bidak otomatis dipilih: Piece #{PieceIndex(gc, chosen) + 1}\n", ConsoleColor.Cyan);
+                WriteColored($"  Bidak otomatis dipilih: Piece #{PieceIndex(gameController, chosen) + 1}\n", ConsoleColor.Cyan);
                 Thread.Sleep(600);
             }
             else
             {
-                chosen = PickPiece(gc, movable, currentPlayer);
+                chosen = PickPiece(gameController, movable, currentPlayer);
             }
 
             // Gerakkan
-            gc.MovePiece(currentPlayer, chosen, roll);
+            gameController.MovePiece(currentPlayer, chosen, roll);
 
-            if (!gc.IsGameOver)
+            if (!gameController.IsGameOver)
             {
                 // Tampilkan info gerak
                 string stepInfo = chosen.State == PieceState.Finished
@@ -130,14 +130,14 @@ public class GameUI
                 WriteColored($"  ➜ Bidak pindah ke {stepInfo}\n", ConsoleColor.White);
                 Thread.Sleep(800);
 
-                gc.NextTurn();
+                gameController.NextTurn();
             }
         }
     }
 
     // ── Input Helper ─────────────────────────────────────────────────────────
 
-    private IPiece PickPiece(IGameController gc, IList<IPiece> movable, IPlayer player)
+    private IPiece PickPiece(IGameController gameController, IList<IPiece> movable, IPlayer player)
     {
         Console.WriteLine();
         Console.WriteLine("  Pilih bidak yang ingin digerakkan:");
@@ -147,7 +147,7 @@ public class GameUI
             string stateStr = p.State == PieceState.Base
                 ? "Di Base"
                 : $"Step {p.CurrentStep} ({p.CurrentPosition.X},{p.CurrentPosition.Y})";
-            WriteColored($"    [{i + 1}] Piece #{PieceIndex(gc, p) + 1} — {stateStr}\n",
+            WriteColored($"    [{i + 1}] Piece #{PieceIndex(gameController, p) + 1} — {stateStr}\n",
                 ColorMap[player.Color]);
         }
 
@@ -196,10 +196,10 @@ public class GameUI
     // ── Board Rendering ───────────────────────────────────────────────────────
 
     /// <summary>Gambar papan Ludo 15×15 dengan posisi semua bidak saat ini.</summary>
-    private void DrawBoard(IGameController gc)
+    private void DrawBoard(IGameController gameController)
     {
         // Bangun lookup: (X,Y) → list simbol bidak
-        var pieceMap = BuildPieceMap(gc);
+        var pieceMap = BuildPieceMap(gameController);
 
         Console.WriteLine("  ╔═══ LUDO ════════════════════════════════════════════╗");
         Console.WriteLine("  ║    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14     ║");
@@ -253,11 +253,11 @@ public class GameUI
     }
 
     /// <summary>Bangun map posisi → daftar (simbol, warna) dari semua bidak aktif/finished.</summary>
-    private Dictionary<(int X, int Y), List<(string display, ConsoleColor color)>> BuildPieceMap(IGameController gc)
+    private Dictionary<(int X, int Y), List<(string display, ConsoleColor color)>> BuildPieceMap(IGameController gameController)
     {
         var map = new Dictionary<(int, int), List<(string, ConsoleColor)>>();
 
-        foreach (var (color, pieces) in gc.GetAllPieces())
+        foreach (var (color, pieces) in gameController.GetAllPieces())
         {
             char sym = ColorSymbol[color];
             ConsoleColor cc = ColorMap[color];
@@ -280,14 +280,14 @@ public class GameUI
 
     // ── Status Panel ──────────────────────────────────────────────────────────
 
-    private void DrawStatus(IGameController gc)
+    private void DrawStatus(IGameController gameController)
     {
         Console.WriteLine("  ┌─── STATUS PEMAIN ────────────────────────────────────┐");
 
-        var allPieces = gc.GetAllPieces();
-        foreach (var player in gc.GetPlayers())
+        var allPieces = gameController.GetAllPieces();
+        foreach (var player in gameController.GetPlayers())
         {
-            bool isCurrent = gc.GetCurrentPlayer().Color == player.Color;
+            bool isCurrent = gameController.GetCurrentPlayer().Color == player.Color;
             string marker = isCurrent ? "▶ " : "  ";
             var pieces = allPieces[player.Color];
 
@@ -341,7 +341,7 @@ public class GameUI
         Thread.Sleep(1000);
     }
 
-    private void ShowVictory(IGameController gc)
+    private void ShowVictory(IGameController gameController)
     {
         Console.Clear();
         Console.WriteLine();
@@ -366,9 +366,9 @@ public class GameUI
         Console.WriteLine("  🏆 PEMENANG: ");
 
         // Cari pemenang = pemain yang semua bidaknya Finished
-        foreach (var player in gc.GetPlayers())
+        foreach (var player in gameController.GetPlayers())
         {
-            var pieces = gc.GetAllPieces()[player.Color];
+            var pieces = gameController.GetAllPieces()[player.Color];
             if (pieces.All(p => p.State == PieceState.Finished))
             {
                 WriteColored($"      ★ {player.Name} ({player.Color}) ★\n",
@@ -422,9 +422,9 @@ public class GameUI
     }
 
     /// <summary>Dapatkan index bidak dalam daftar milik warnanya.</summary>
-    private static int PieceIndex(IGameController gc, IPiece piece)
+    private static int PieceIndex(IGameController gameController, IPiece piece)
     {
-        var list = gc.GetAllPieces()[piece.Color];
+        var list = gameController.GetAllPieces()[piece.Color];
         for (int i = 0; i < list.Count; i++)
             if (ReferenceEquals(list[i], piece)) return i;
         return 0;
