@@ -1,4 +1,3 @@
-using Ludo.Backend.Controllers;
 using Ludo.Backend.Enums;
 using Ludo.Backend.Interfaces;
 using Ludo.Backend.Models;
@@ -54,13 +53,21 @@ public class GameUI
 
             // Setup pemain (input dari user)
             int numPlayers = AskNumberOfPlayers();
-            var players = CreatePlayers(numPlayers);
+            List<IPlayer> players = CreatePlayers(numPlayers);
 
             // Subscribe events (backend sudah di-inject via constructor)
-            _gameController.OnPieceCaptured += (attacker, victim) =>
+            _gameController.OnPieceCaptured += OnPieceCapturedHandler;
+            _gameController.onGameFinished += OnGameFinishedHandler;
+
+            void OnPieceCapturedHandler(IPiece attacker, IPiece victim)
+            {
                 ShowCapture(attacker, victim);
-            _gameController.onGameFinished += () =>
+            }
+
+            void OnGameFinishedHandler()
+            {
                 ShowVictory(_gameController);
+            }
 
             // Mulai game dengan players yang sudah dibuat
             _gameController.StartGame(players);
@@ -84,7 +91,7 @@ public class GameUI
             DrawBoard(gameController);
             DrawStatus(gameController);
 
-            var currentPlayer = gameController.GetCurrentPlayer();
+            IPlayer currentPlayer = gameController.GetCurrentPlayer();
             PrintLine();
             WriteColored($"  Giliran: {currentPlayer.Name} ", ColorMap[currentPlayer.Color]);
             Console.WriteLine("— tekan [ENTER] untuk lempar dadu...");
@@ -95,7 +102,7 @@ public class GameUI
             DrawDice(roll);
 
             // Dapatkan bidak yang bisa bergerak
-            var movable = gameController.GetMovablePieces();
+            IList<IPiece> movable = gameController.GetMovablePieces();
 
             if (movable.Count == 0)
             {
@@ -124,9 +131,17 @@ public class GameUI
             if (!gameController.IsGameOver)
             {
                 // Tampilkan info gerak
-                string stepInfo = chosen.State == PieceState.Finished
-                    ? "FINISH! 🎉"
-                    : $"step {chosen.CurrentStep} → ({chosen.CurrentPosition.X},{chosen.CurrentPosition.Y})";
+                string stepInfo;
+
+                if (chosen.State == PieceState.Finished)
+                {
+                    stepInfo = "FINISH! 🎉";
+                }
+                else
+                {
+                    stepInfo = $"step {chosen.CurrentStep} → ({chosen.CurrentPosition.X},{chosen.CurrentPosition.Y})";
+                }
+
                 WriteColored($"  ➜ Bidak pindah ke {stepInfo}\n", ConsoleColor.White);
                 Thread.Sleep(800);
 
@@ -143,7 +158,7 @@ public class GameUI
         Console.WriteLine("  Pilih bidak yang ingin digerakkan:");
         for (int i = 0; i < movable.Count; i++)
         {
-            var p = movable[i];
+            IPiece p = movable[i];
             string stateStr = p.State == PieceState.Base
                 ? "Di Base"
                 : $"Step {p.CurrentStep} ({p.CurrentPosition.X},{p.CurrentPosition.Y})";
@@ -154,7 +169,7 @@ public class GameUI
         while (true)
         {
             Console.Write("  Pilihan (angka): ");
-            var input = Console.ReadLine();
+            string? input = Console.ReadLine();
             if (int.TryParse(input, out int idx) && idx >= 1 && idx <= movable.Count)
                 return movable[idx - 1];
             Console.WriteLine("  Input tidak valid, coba lagi.");
@@ -167,15 +182,17 @@ public class GameUI
         {
             Console.Write("  Jumlah pemain (2-4): ");
             if (int.TryParse(Console.ReadLine(), out int n) && n >= 2 && n <= 4)
+            {
                 return n;
+            }
             Console.WriteLine("  Masukkan angka 2-4.");
         }
     }
 
     private List<IPlayer> CreatePlayers(int count)
     {
-        var colors = Enum.GetValues<PlayerColor>();
-        var players = new List<IPlayer>();
+        PlayerColor[] colors = Enum.GetValues<PlayerColor>();
+        List<IPlayer> players = new List<IPlayer>();
 
         for (int i = 0; i < count; i++)
         {
@@ -183,8 +200,27 @@ public class GameUI
             string defaultName = color.ToString();
 
             WriteColored($"  Nama pemain {i + 1} [{color}] (Enter = {defaultName}): ", ColorMap[color]);
-            string input = Console.ReadLine()?.Trim() ?? "";
-            string name = string.IsNullOrEmpty(input) ? defaultName : input;
+            string? input = Console.ReadLine();
+
+            if (input != null)
+            {
+                input = input.Trim();
+            }
+            else
+            {
+                input = "";
+            }
+
+            string name;
+
+            if (string.IsNullOrEmpty(input))
+            {
+                name = defaultName;
+            }
+            else
+            {
+                name = input;
+            }
 
             players.Add(new Player(name, color));
             WriteColored($"  ✓ {name} ({color})\n", ColorMap[color]);
@@ -199,7 +235,7 @@ public class GameUI
     private void DrawBoard(IGameController gameController)
     {
         // Bangun lookup: (X,Y) → list simbol bidak
-        var pieceMap = BuildPieceMap(gameController);
+        Dictionary<(int X, int Y), List<(string display, ConsoleColor color)>> pieceMap = BuildPieceMap(gameController);
 
         Console.WriteLine("  ╔═══ LUDO ════════════════════════════════════════════╗");
         Console.WriteLine("  ║    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14     ║");
@@ -210,10 +246,10 @@ public class GameUI
             Console.Write($"  ║{row,2} ");
             for (int col = 0; col < Board.Size; col++)
             {
-                var tileType = DetermineTileType(row, col);
-                var key = (col, row);
+                TileTypes tileType = DetermineTileType(row, col);
+                (int col, int row) key = (col, row);
 
-                if (pieceMap.TryGetValue(key, out var symbols) && symbols.Count > 0)
+                if (pieceMap.TryGetValue(key, out List<(string display, ConsoleColor color)>? symbols) && symbols.Count > 0)
                 {
                     // Tampilkan bidak (satu atau lebih)
                     if (symbols.Count == 1)
@@ -255,21 +291,21 @@ public class GameUI
     /// <summary>Bangun map posisi → daftar (simbol, warna) dari semua bidak aktif/finished.</summary>
     private Dictionary<(int X, int Y), List<(string display, ConsoleColor color)>> BuildPieceMap(IGameController gameController)
     {
-        var map = new Dictionary<(int, int), List<(string, ConsoleColor)>>();
+        Dictionary<(int, int), List<(string, ConsoleColor)>> map = new Dictionary<(int, int), List<(string, ConsoleColor)>>();
 
-        foreach (var (color, pieces) in gameController.GetAllPieces())
+        foreach ((PlayerColor color, IList<IPiece>? pieces) in gameController.GetAllPieces())
         {
             char sym = ColorSymbol[color];
             ConsoleColor cc = ColorMap[color];
 
             for (int i = 0; i < pieces.Count; i++)
             {
-                var piece = pieces[i];
+                IPiece piece = pieces[i];
                 if (piece.State == PieceState.Base || piece.State == PieceState.Finished)
                 {
                     // Bidak di base tetap ditampilkan di posisinya
                 }
-                var pos = (piece.CurrentPosition.X, piece.CurrentPosition.Y);
+                (int X, int Y) pos = (piece.CurrentPosition.X, piece.CurrentPosition.Y);
                 if (!map.ContainsKey(pos)) map[pos] = new();
                 map[pos].Add(($"{sym}{i + 1}", cc));
             }
@@ -284,17 +320,43 @@ public class GameUI
     {
         Console.WriteLine("  ┌─── STATUS PEMAIN ────────────────────────────────────┐");
 
-        var allPieces = gameController.GetAllPieces();
-        foreach (var player in gameController.GetPlayers())
+        IDictionary<PlayerColor, IList<IPiece>> allPieces = gameController.GetAllPieces();
+        foreach (IPlayer player in gameController.GetPlayers())
         {
             bool isCurrent = gameController.GetCurrentPlayer().Color == player.Color;
-            string marker = isCurrent ? "▶ " : "  ";
-            var pieces = allPieces[player.Color];
+            string marker;
+
+            if (isCurrent)
+            {
+                marker = "▶ ";
+            }
+            else
+            {
+                marker = "  ";
+            }
+
+            IList<IPiece> pieces = allPieces[player.Color];
 
             // Hitung berapa bidak finished
-            int finished = pieces.Count(p => p.State == PieceState.Finished);
-            int active = pieces.Count(p => p.State == PieceState.Active);
-            int inBase = pieces.Count(p => p.State == PieceState.Base);
+            int finished = 0;
+            int active = 0;
+            int inBase = 0;
+
+            foreach (IPiece p in pieces)
+            {
+                if (p.State == PieceState.Finished)
+                {
+                    finished++;
+                }
+                else if (p.State == PieceState.Active)
+                {
+                    active++;
+                }
+                else if (p.State == PieceState.Base)
+                {
+                    inBase++;
+                }
+            }
 
             string progress = $"Finish:{finished} Aktif:{active} Base:{inBase}";
             string line = $"  │ {marker}{player.Name,-10} [{player.Color,-6}] {progress}";
@@ -324,10 +386,14 @@ public class GameUI
 
         Console.WriteLine();
         WriteColored($"  🎲 Hasil dadu: {roll}\n", ConsoleColor.Yellow);
-        foreach (var diceLine in faces[roll].Split('\n'))
+        foreach (string diceLine in faces[roll].Split('\n'))
+        {
             Console.WriteLine("    " + diceLine);
+        }
         if (roll == 6)
+        {
             WriteColored("  ★ Dadu 6! Giliran bonus!\n", ConsoleColor.Yellow);
+        }
         Console.WriteLine();
     }
 
@@ -356,7 +422,7 @@ public class GameUI
             @"  ╚══════╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝",
         };
 
-        foreach (var line in banner)
+        foreach (string line in banner)
         {
             WriteColored(line + "\n", ConsoleColor.Yellow);
             Thread.Sleep(80);
@@ -366,9 +432,9 @@ public class GameUI
         Console.WriteLine("  🏆 PEMENANG: ");
 
         // Cari pemenang = pemain yang semua bidaknya Finished
-        foreach (var player in gameController.GetPlayers())
+        foreach (IPlayer player in gameController.GetPlayers())
         {
-            var pieces = gameController.GetAllPieces()[player.Color];
+            IList<IPiece> pieces = gameController.GetAllPieces()[player.Color];
             if (pieces.All(p => p.State == PieceState.Finished))
             {
                 WriteColored($"      ★ {player.Name} ({player.Color}) ★\n",
@@ -390,8 +456,10 @@ public class GameUI
         Console.ResetColor();
     }
 
-    private static void PrintLine() =>
+    private static void PrintLine()
+    {
         Console.WriteLine("  " + new string('─', 54));
+    }
 
     private static void WaitEnter()
     {
@@ -406,17 +474,37 @@ public class GameUI
     {
         // Area tengah 3×3 = Finish
         if (row >= 6 && row <= 8 && col >= 6 && col <= 8)
+        {
             return TileTypes.Finish;
+        }
 
         // Area base di 4 sudut (4×4 tiap warna)
-        if (row >= 1 && row <= 4 && col >= 1 && col <= 4) return TileTypes.Base; // Red
-        if (row >= 1 && row <= 4 && col >= 10 && col <= 13) return TileTypes.Base; // Blue
-        if (row >= 10 && row <= 13 && col >= 1 && col <= 4) return TileTypes.Base; // Green
-        if (row >= 10 && row <= 13 && col >= 10 && col <= 13) return TileTypes.Base; // Yellow
+        if (row >= 1 && row <= 4 && col >= 1 && col <= 4)
+        {
+            return TileTypes.Base; // Red
+        }
+        if (row >= 1 && row <= 4 && col >= 10 && col <= 13)
+        {
+            return TileTypes.Base; // Blue
+        }
+        if (row >= 10 && row <= 13 && col >= 1 && col <= 4)
+        {
+            return TileTypes.Base; // Green
+        }
+        if (row >= 10 && row <= 13 && col >= 10 && col <= 13)
+        {
+            return TileTypes.Base; // Yellow
+        }
 
         // Jalur utama (cross shape)
-        if (row >= 6 && row <= 8) return TileTypes.Normal;
-        if (col >= 6 && col <= 8) return TileTypes.Normal;
+        if (row >= 6 && row <= 8)
+        {
+            return TileTypes.Normal;
+        }
+        if (col >= 6 && col <= 8)
+        {
+            return TileTypes.Normal;
+        }
 
         return TileTypes.Normal;
     }
@@ -424,9 +512,14 @@ public class GameUI
     /// <summary>Dapatkan index bidak dalam daftar milik warnanya.</summary>
     private static int PieceIndex(IGameController gameController, IPiece piece)
     {
-        var list = gameController.GetAllPieces()[piece.Color];
+        IList<IPiece> list = gameController.GetAllPieces()[piece.Color];
         for (int i = 0; i < list.Count; i++)
-            if (ReferenceEquals(list[i], piece)) return i;
+        {
+            if (ReferenceEquals(list[i], piece))
+            {
+                return i;
+            }
+        }
         return 0;
     }
 

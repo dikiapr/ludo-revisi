@@ -86,7 +86,9 @@ public class GameController : IGameController
     public void StartGame(List<IPlayer> players)
     {
         if (players == null || players.Count < 2 || players.Count > 4)
+        {
             throw new ArgumentException("Ludo memerlukan 2-4 pemain.", nameof(players));
+        }
         _players.Clear();
         _players.AddRange(players);
 
@@ -96,14 +98,20 @@ public class GameController : IGameController
             Position[] bases = BasePositions[player.Color];
             List<IPiece> list = new List<IPiece>();
             for (int i = 0; i < 4; i++)
+            {
                 list.Add(new Piece(player.Color, new Position(bases[i].X, bases[i].Y)));
+            }
             _pieces[player.Color] = list;
         }
 
         // Tempatkan bidak pada tile base di grid board
         foreach ((PlayerColor color, List<IPiece> pieces) in _pieces)
+        {
             foreach (IPiece piece in pieces)
+            {
                 AddPieceToTile(piece.CurrentPosition, piece);
+            }
+        }
 
         CurrentPlayerIndex = 0;
         IsGameOver = false;
@@ -115,7 +123,10 @@ public class GameController : IGameController
     public int RollDice()
     {
         _lastDiceRoll = _dice.Roll();
-        _bonusTurn = (_lastDiceRoll == 6);
+        if (_lastDiceRoll == 6)
+        {
+            _bonusTurn = true;
+        }
         return _lastDiceRoll;
     }
 
@@ -145,12 +156,17 @@ public class GameController : IGameController
 
             if (piece.State == PieceState.Base)
             {
-                if (_lastDiceRoll == 6) result.Add(piece);
+                if (_lastDiceRoll == 6)
+                {
+                    result.Add(piece);
+                }
             }
             else // Active
             {
                 if (piece.CurrentStep + _lastDiceRoll <= 57)
+                {
                     result.Add(piece);
+                }
             }
         }
 
@@ -164,7 +180,10 @@ public class GameController : IGameController
     public IPiece ChoosePiece(IList<IPiece> movablePieces)
     {
         if (movablePieces == null || movablePieces.Count == 0)
+        {
             throw new InvalidOperationException("Tidak ada bidak yang bisa digerakkan.");
+        }
+
         IPiece chosen = movablePieces[0];
         return chosen;
     }
@@ -214,7 +233,9 @@ public class GameController : IGameController
 
         // Cek penangkapan (hanya di main track, bukan home column)
         if (piece.CurrentStep < 52)
+        {
             CheckCapture(player, piece);
+        }
     }
 
     /// <summary>
@@ -280,17 +301,32 @@ public class GameController : IGameController
         (int X, int Y) posKey = (pos.X, pos.Y);
 
         // Kotak aman: tidak bisa menangkap
-        if (SafeSquares.Contains(posKey)) return;
+        if (SafeSquares.Contains(posKey))
+        {
+            return;
+        }
 
         foreach (IPlayer player in _players)
         {
-            if (player.Color == currentPlayer.Color) continue;
-            if (!_pieces.ContainsKey(player.Color)) continue;
+            if (player.Color == currentPlayer.Color)
+            {
+                continue;
+            }
+            if (!_pieces.ContainsKey(player.Color))
+            {
+                continue;
+            }
 
             foreach (IPiece piece in _pieces[player.Color])
             {
-                if (piece.State != PieceState.Active) continue;
-                if (piece.CurrentStep >= 52) continue; // Home column = aman
+                if (piece.State != PieceState.Active)
+                {
+                    continue;
+                }
+                if (piece.CurrentStep >= 52)
+                {
+                    continue; // Home column = aman
+                }
 
                 if (piece.CurrentPosition.X == pos.X && piece.CurrentPosition.Y == pos.Y)
                 {
@@ -321,14 +357,18 @@ public class GameController : IGameController
     private void AddPieceToTile(Position pos, IPiece piece)
     {
         if (IsValidTilePos(pos))
+        {
             _board.Grid[pos.Y, pos.X].Pieces.Add(piece);
+        }
     }
 
     /// <summary>Hapus bidak dari tile pada koordinat (X=col, Y=row) di grid board.</summary>
     private void RemovePieceFromTile(Position pos, IPiece piece)
     {
         if (IsValidTilePos(pos))
+        {
             _board.Grid[pos.Y, pos.X].Pieces.Remove(piece);
+        }
     }
 
     private static bool IsValidTilePos(Position pos)
@@ -406,7 +446,9 @@ public class GameController : IGameController
         track.Add(new Position(0, 6));
 
         if (track.Count != 52)
+        {
             throw new InvalidOperationException($"Main track harus 52 kotak, tapi {track.Count}.");
+        }
 
         Position[] result = track.ToArray();
         return result;
