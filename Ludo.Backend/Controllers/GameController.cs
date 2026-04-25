@@ -264,13 +264,6 @@ public class GameController : IGameController
         return allPieces;
     }
 
-    /// <summary>Paksa akhiri permainan.</summary>
-    public void EndGame()
-    {
-        IsGameOver = true;
-        onGameFinished?.Invoke();
-    }
-
     // ── Private Helpers ──────────────────────────────────────────────────────
 
     /// <summary>

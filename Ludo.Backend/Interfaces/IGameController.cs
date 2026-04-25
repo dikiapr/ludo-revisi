@@ -23,5 +23,4 @@ public interface IGameController
     void NextTurn();
     IList<IPlayer> GetPlayers();
     IDictionary<PlayerColor, IList<IPiece>> GetAllPieces();
-    void EndGame();
 }
