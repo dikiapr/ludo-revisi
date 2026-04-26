@@ -9,9 +9,11 @@ namespace Ludo.Backend.Controllers;
 /// Mengelola giliran pemain, pergerakan bidak, penangkapan, dan kondisi menang.
 ///
 /// KONSEP PATH:
-///   - Main track  : 52 kotak melingkar (step 0-51), searah jarum jam mulai dari (1,6)
-///   - Home column : 6 kotak khusus per warna (step 52-57) menuju finish
-///   - Step 57     : bidak selesai (Finished)
+///   - Main track  : 51 kotak (step 0-50), searah jarum jam mulai dari start tiap warna.
+///                   Tiap warna keluar dari main track 1 tile sebelum kembali ke start, lalu
+///                   belok masuk ke home column (tile (0,6) tidak dilewati Red, dll).
+///   - Home column : 6 kotak khusus per warna (step 51-56) menuju finish
+///   - Step 56     : bidak selesai (Finished)
 ///
 /// STARTING OFFSETS (jarak dari index 0 main track):
 ///   Red=0, Blue=13, Yellow=26, Green=39
@@ -177,7 +179,7 @@ public class GameController : IGameController
             }
             else // Active
             {
-                if (piece.CurrentStep + _lastDiceRoll <= 57)
+                if (piece.CurrentStep + _lastDiceRoll <= 56)
                 {
                     result.Add(piece);
                 }
@@ -224,7 +226,7 @@ public class GameController : IGameController
             piece.CurrentStep = newStep;
             piece.CurrentPosition = GetBoardPosition(piece.Color, newStep);
 
-            if (newStep == 57)
+            if (newStep == 56)
             {
                 // Bidak selesai!
                 piece.State = PieceState.Finished;
@@ -246,7 +248,7 @@ public class GameController : IGameController
         AddPieceToTile(piece.CurrentPosition, piece);
 
         // Cek penangkapan (hanya di main track, bukan home column)
-        if (piece.CurrentStep < 52)
+        if (piece.CurrentStep < 51)
         {
             CheckCapture(player, piece);
         }
@@ -283,15 +285,17 @@ public class GameController : IGameController
     /// <summary>
     /// Hitung posisi papan (koordinat tile) berdasarkan warna dan step bidak.
     ///   step -1     → posisi base (tidak dipakai di sini)
-    ///   step 0-51   → main track (dengan offset per warna)
-    ///   step 52-57  → home column spesifik warna
+    ///   step 0-50   → main track (dengan offset per warna; tiap warna belok ke
+    ///                 home column tepat sebelum kembali ke tile sebelum start, jadi
+    ///                 hanya 51 tile main track yang dilewati, bukan 52)
+    ///   step 51-56  → home column spesifik warna
     /// </summary>
     private static Position GetBoardPosition(PlayerColor color, int step)
     {
-        if (step >= 52)
+        if (step >= 51)
         {
             Position[] homeCol = HomeColumns[color];
-            Position homePosition = homeCol[step - 52];
+            Position homePosition = homeCol[step - 51];
             return homePosition;
         }
 
@@ -330,7 +334,7 @@ public class GameController : IGameController
                 {
                     continue;
                 }
-                if (piece.CurrentStep >= 52)
+                if (piece.CurrentStep >= 51)
                 {
                     continue; // Home column = aman
                 }
