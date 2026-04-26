@@ -52,22 +52,36 @@ public class GameController : IGameController
         { PlayerColor.Green,  39 },
     };
 
-    /// <summary>Kotak aman di main track (tidak bisa ditangkap).</summary>
+    /// <summary>
+    /// 8 kotak aman di main track (tidak bisa ditangkap):
+    ///   - 4 starting position tiap warna
+    ///   - 4 "star square" yang berada 8 langkah setelah tiap start
+    /// </summary>
     private static readonly HashSet<(int X, int Y)> SafeSquares = new()
     {
-        (1,  6),   // Red start
-        (8,  1),   // Blue start
-        (13, 8),   // Yellow start
-        (6,  13),  // Green start
+        // Starting positions
+        (1,  6),   // Red start    (track index 0)
+        (8,  1),   // Blue start   (track index 13)
+        (13, 8),   // Yellow start (track index 26)
+        (6,  13),  // Green start  (track index 39)
+
+        // Star squares (8 langkah setelah start)
+        (6,  2),   // 8 langkah dari Red    (track index 8)
+        (12, 6),   // 8 langkah dari Blue   (track index 21)
+        (8,  12),  // 8 langkah dari Yellow (track index 34)
+        (2,  8),   // 8 langkah dari Green  (track index 47)
     };
 
-    /// <summary>Posisi base untuk 4 bidak tiap warna (X=col, Y=row).</summary>
+    /// <summary>
+    /// Posisi base untuk 4 bidak tiap warna (X=col, Y=row).
+    /// Tiap base 4×4 → inner 2×2 di tengah supaya bidak terpusat.
+    /// </summary>
     private static readonly Dictionary<PlayerColor, Position[]> BasePositions = new()
     {
-        { PlayerColor.Red,    new[] { new Position(2,2),  new Position(3,2),  new Position(2,3),  new Position(3,3)  } },
-        { PlayerColor.Blue,   new[] { new Position(10,2), new Position(11,2), new Position(10,3), new Position(11,3) } },
-        { PlayerColor.Yellow, new[] { new Position(10,10),new Position(11,10),new Position(10,11),new Position(11,11)} },
-        { PlayerColor.Green,  new[] { new Position(2,10), new Position(3,10), new Position(2,11), new Position(3,11) } },
+        { PlayerColor.Red,    new[] { new Position(2,2),   new Position(3,2),   new Position(2,3),   new Position(3,3)   } },
+        { PlayerColor.Blue,   new[] { new Position(11,2),  new Position(12,2),  new Position(11,3),  new Position(12,3)  } },
+        { PlayerColor.Yellow, new[] { new Position(11,11), new Position(12,11), new Position(11,12), new Position(12,12) } },
+        { PlayerColor.Green,  new[] { new Position(2,11),  new Position(3,11),  new Position(2,12),  new Position(3,12)  } },
     };
 
     // ── Constructor ──────────────────────────────────────────────────────────

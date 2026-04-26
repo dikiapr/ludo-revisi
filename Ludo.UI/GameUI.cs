@@ -39,6 +39,15 @@ public class GameUI
         { PlayerColor.Green,  'G' },
     };
 
+    // Background gelap untuk area base (kontras dengan teks bidak)
+    private static readonly Dictionary<PlayerColor, ConsoleColor> BaseBgMap = new()
+    {
+        { PlayerColor.Red,    ConsoleColor.DarkRed    },
+        { PlayerColor.Blue,   ConsoleColor.DarkBlue   },
+        { PlayerColor.Yellow, ConsoleColor.DarkYellow },
+        { PlayerColor.Green,  ConsoleColor.DarkGreen  },
+    };
+
     // ── Entry point ──────────────────────────────────────────────────────────
 
     /// <summary>Mulai UI, buat pemain, jalankan game loop.</summary>
@@ -171,7 +180,10 @@ public class GameUI
             Console.Write("  Pilihan (angka): ");
             string? input = Console.ReadLine();
             if (int.TryParse(input, out int idx) && idx >= 1 && idx <= movable.Count)
-                return movable[idx - 1];
+            {
+                IPiece selectedPiece = movable[idx - 1];
+                return selectedPiece;
+            }
             Console.WriteLine("  Input tidak valid, coba lagi.");
         }
     }
@@ -181,9 +193,9 @@ public class GameUI
         while (true)
         {
             Console.Write("  Jumlah pemain (2-4): ");
-            if (int.TryParse(Console.ReadLine(), out int n) && n >= 2 && n <= 4)
+            if (int.TryParse(Console.ReadLine(), out int numPlayers) && numPlayers >= 2 && numPlayers <= 4)
             {
-                return n;
+                return numPlayers;
             }
             Console.WriteLine("  Masukkan angka 2-4.");
         }
@@ -234,58 +246,67 @@ public class GameUI
     /// <summary>Gambar papan Ludo 15×15 dengan posisi semua bidak saat ini.</summary>
     private void DrawBoard(IGameController gameController)
     {
-        // Bangun lookup: (X,Y) → list simbol bidak
         Dictionary<(int X, int Y), List<(string display, ConsoleColor color)>> pieceMap = BuildPieceMap(gameController);
 
-        Console.WriteLine("  ╔═══ LUDO ════════════════════════════════════════════╗");
-        Console.WriteLine("  ║    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14     ║");
-        Console.WriteLine("  ╠════════════════════════════════════════════════════╣");
+        // Header kolom: setiap nomor menempati 3 char ("XX ") supaya lurus dengan sel.
+        string colHeader = "";
+        for (int col = 0; col < Board.Size; col++)
+        {
+            colHeader += $"{col,2} ";
+        }
+
+        Console.WriteLine();
+        WriteColored("  ╔════════════════ ★ PAPAN LUDO ★ ════════════════╗\n", ConsoleColor.Cyan);
+        WriteColored($"  ║   {colHeader}║\n", ConsoleColor.Cyan);
+        WriteColored("  ╠════════════════════════════════════════════════╣\n", ConsoleColor.Cyan);
 
         for (int row = 0; row < Board.Size; row++)
         {
-            Console.Write($"  ║{row,2} ");
+            WriteColored("  ║", ConsoleColor.Cyan);
+            Console.Write($"{row,2} ");
+
             for (int col = 0; col < Board.Size; col++)
             {
-                TileTypes tileType = DetermineTileType(row, col);
-                (int col, int row) key = (col, row);
-
-                if (pieceMap.TryGetValue(key, out List<(string display, ConsoleColor color)>? symbols) && symbols.Count > 0)
-                {
-                    // Tampilkan bidak (satu atau lebih)
-                    if (symbols.Count == 1)
-                    {
-                        WriteColored(symbols[0].display.PadLeft(2), symbols[0].color);
-                        Console.Write(" ");
-                    }
-                    else
-                    {
-                        // Beberapa bidak di kotak yang sama
-                        WriteColored($"#{symbols.Count} ", ConsoleColor.White);
-                    }
-                }
-                else
-                {
-                    // Tile kosong
-                    string cell = tileType switch
-                    {
-                        TileTypes.Base => "██ ",
-                        TileTypes.Finish => " F ",
-                        TileTypes.Normal => " · ",
-                        _ => "   ",
-                    };
-                    ConsoleColor tileColor = tileType switch
-                    {
-                        TileTypes.Finish => ConsoleColor.Magenta,
-                        _ => ConsoleColor.DarkGray,
-                    };
-                    WriteColored(cell, tileColor);
-                }
+                DrawCell(row, col, pieceMap);
             }
-            Console.WriteLine("║");
+
+            WriteColored("║\n", ConsoleColor.Cyan);
         }
 
-        Console.WriteLine("  ╚════════════════════════════════════════════════════╝");
-        Console.WriteLine();
+        WriteColored("  ╚════════════════════════════════════════════════╝\n", ConsoleColor.Cyan);
+        DrawLegend();
+    }
+
+    /// <summary>Render satu sel: bidak (jika ada) atau tile kosong dengan style sesuai tipenya.</summary>
+    private void DrawCell(int row, int col, Dictionary<(int X, int Y), List<(string display, ConsoleColor color)>> pieceMap)
+    {
+        (string symbol, ConsoleColor foreground, ConsoleColor background) tile = RenderEmptyCell(row, col);
+
+        if (pieceMap.TryGetValue((col, row), out List<(string display, ConsoleColor color)>? pieces) && pieces.Count > 0)
+        {
+            // Bidak digambar di atas bg tile (mis. bidak di base tetap berlatar warna basenya).
+            if (pieces.Count == 1)
+            {
+                WriteCell($"{pieces[0].display} ", pieces[0].color, tile.background);
+            }
+            else
+            {
+                WriteCell($"+{pieces.Count} ", ConsoleColor.White, tile.background);
+            }
+        }
+        else
+        {
+            WriteCell(tile.symbol, tile.foreground, tile.background);
+        }
+    }
+
+    /// <summary>Tulis teks dengan warna foreground + background, lalu reset.</summary>
+    private static void WriteCell(string text, ConsoleColor foreground, ConsoleColor background)
+    {
+        Console.ForegroundColor = foreground;
+        Console.BackgroundColor = background;
+        Console.Write(text);
+        Console.ResetColor();
     }
 
     /// <summary>Bangun map posisi → daftar (simbol, warna) dari semua bidak aktif/finished.</summary>
@@ -466,47 +487,244 @@ public class GameUI
         Console.ReadLine();
     }
 
-    /// <summary>
-    /// Tentukan tipe tile berdasarkan koordinat — layout Ludo selalu tetap.
-    /// Tidak perlu akses Board/IBoard sama sekali.
-    /// </summary>
-    private static TileTypes DetermineTileType(int row, int col)
-    {
-        // Area tengah 3×3 = Finish
-        if (row >= 6 && row <= 8 && col >= 6 && col <= 8)
-        {
-            return TileTypes.Finish;
-        }
+    // ── Tile Layout Helpers ──────────────────────────────────────────────────
 
-        // Area base di 4 sudut (4×4 tiap warna)
+    /// <summary>Apakah sel termasuk area finish 3×3 di pusat papan.</summary>
+    private static bool IsCenterFinish(int row, int col)
+    {
+        bool isCenterFinish = row >= 6 && row <= 8 && col >= 6 && col <= 8;
+        return isCenterFinish;
+    }
+
+    /// <summary>Pemilik area base 4×4 di sudut, atau null bila bukan base.</summary>
+    private static PlayerColor? GetBaseOwner(int row, int col)
+    {
         if (row >= 1 && row <= 4 && col >= 1 && col <= 4)
         {
-            return TileTypes.Base; // Red
+            PlayerColor redOwner = PlayerColor.Red;
+            return redOwner;
         }
         if (row >= 1 && row <= 4 && col >= 10 && col <= 13)
         {
-            return TileTypes.Base; // Blue
-        }
-        if (row >= 10 && row <= 13 && col >= 1 && col <= 4)
-        {
-            return TileTypes.Base; // Green
+            PlayerColor blueOwner = PlayerColor.Blue;
+            return blueOwner;
         }
         if (row >= 10 && row <= 13 && col >= 10 && col <= 13)
         {
-            return TileTypes.Base; // Yellow
+            PlayerColor yellowOwner = PlayerColor.Yellow;
+            return yellowOwner;
+        }
+        if (row >= 10 && row <= 13 && col >= 1 && col <= 4)
+        {
+            PlayerColor greenOwner = PlayerColor.Green;
+            return greenOwner;
+        }
+        PlayerColor? noOwner = null;
+        return noOwner;
+    }
+
+    /// <summary>Apakah sel ini adalah salah satu dari 4 slot bidak di dalam area base (inner 2×2 di tengah).</summary>
+    private static bool IsBaseSlot(int row, int col)
+    {
+        if (!GetBaseOwner(row, col).HasValue)
+        {
+            bool isNotBase = false;
+            return isNotBase;
+        }
+        bool innerRow = row == 2 || row == 3 || row == 11 || row == 12;
+        bool innerCol = col == 2 || col == 3 || col == 11 || col == 12;
+        bool isInnerSlot = innerRow && innerCol;
+        return isInnerSlot;
+    }
+
+    /// <summary>Pemilik kotak start (safe square) atau null.</summary>
+    private static PlayerColor? GetStartOwner(int row, int col)
+    {
+        if (col == 1 && row == 6)
+        {
+            PlayerColor redOwner = PlayerColor.Red;
+            return redOwner;
+        }
+        if (col == 8 && row == 1)
+        {
+            PlayerColor blueOwner = PlayerColor.Blue;
+            return blueOwner;
+        }
+        if (col == 13 && row == 8)
+        {
+            PlayerColor yellowOwner = PlayerColor.Yellow;
+            return yellowOwner;
+        }
+        if (col == 6 && row == 13)
+        {
+            PlayerColor greenOwner = PlayerColor.Green;
+            return greenOwner;
+        }
+        PlayerColor? noOwner = null;
+        return noOwner;
+    }
+
+    /// <summary>4 star square netral (8 langkah setelah tiap start) — juga safe.</summary>
+    private static bool IsNeutralSafeStar(int row, int col)
+    {
+        if (col == 6 && row == 2)
+        {
+            bool isRedSafeStar = true;  // 8 dari Red
+            return isRedSafeStar;
+        }
+        if (col == 12 && row == 6)
+        {
+            bool isBlueSafeStar = true;  // 8 dari Blue
+            return isBlueSafeStar;
+        }
+        if (col == 8 && row == 12)
+        {
+            bool isYellowSafeStar = true;  // 8 dari Yellow
+            return isYellowSafeStar;
+        }
+        if (col == 2 && row == 8)
+        {
+            bool isGreenSafeStar = true;  // 8 dari Green
+            return isGreenSafeStar;
+        }
+        bool isNotSafeStar = false;
+        return isNotSafeStar;
+    }
+
+    /// <summary>Pemilik tile home column (5 sel sebelum finish), atau null.</summary>
+    private static PlayerColor? GetHomeOwner(int row, int col)
+    {
+        if (row == 7 && col >= 1 && col <= 5)
+        {
+            PlayerColor redOwner = PlayerColor.Red;
+            return redOwner;
+        }
+        if (col == 7 && row >= 1 && row <= 5)
+        {
+            PlayerColor blueOwner = PlayerColor.Blue;
+            return blueOwner;
+        }
+        if (row == 7 && col >= 9 && col <= 13)
+        {
+            PlayerColor yellowOwner = PlayerColor.Yellow;
+            return yellowOwner;
+        }
+        if (col == 7 && row >= 9 && row <= 13)
+        {
+            PlayerColor greenOwner = PlayerColor.Green;
+            return greenOwner;
+        }
+        PlayerColor? noOwner = null;
+        return noOwner;
+    }
+
+    /// <summary>Apakah sel ini path normal di cross-shape (di luar finish/base/home/start).</summary>
+    private static bool IsPath(int row, int col)
+    {
+        bool inCross = (row >= 6 && row <= 8) || (col >= 6 && col <= 8);
+        bool isPath = inCross && !IsCenterFinish(row, col);
+        return isPath;
+    }
+
+    /// <summary>Tentukan simbol + warna fg/bg untuk sel kosong berdasarkan tipenya.</summary>
+    private static (string symbol, ConsoleColor foreground, ConsoleColor background) RenderEmptyCell(int row, int col)
+    {
+        if (IsCenterFinish(row, col))
+        {
+            (string symbol, ConsoleColor foreground, ConsoleColor background) finishCell = RenderFinishCell(row, col);
+            return finishCell;
         }
 
-        // Jalur utama (cross shape)
-        if (row >= 6 && row <= 8)
+        PlayerColor? baseOwner = GetBaseOwner(row, col);
+        if (baseOwner.HasValue)
         {
-            return TileTypes.Normal;
-        }
-        if (col >= 6 && col <= 8)
-        {
-            return TileTypes.Normal;
+            ConsoleColor background = BaseBgMap[baseOwner.Value];
+            string symbol = IsBaseSlot(row, col) ? " ○ " : "   ";
+            (string symbol, ConsoleColor White, ConsoleColor background) baseCell = (symbol, ConsoleColor.White, background);
+            return baseCell;
         }
 
-        return TileTypes.Normal;
+        PlayerColor? startOwner = GetStartOwner(row, col);
+        if (startOwner.HasValue)
+        {
+            (string, ConsoleColor, ConsoleColor Black) startCell = (" ★ ", ColorMap[startOwner.Value], ConsoleColor.Black);
+            return startCell;
+        }
+
+        if (IsNeutralSafeStar(row, col))
+        {
+            (string, ConsoleColor White, ConsoleColor Black) safeStarCell = (" ★ ", ConsoleColor.White, ConsoleColor.Black);
+            return safeStarCell;
+        }
+
+        PlayerColor? homeOwner = GetHomeOwner(row, col);
+        if (homeOwner.HasValue)
+        {
+            (string, ConsoleColor, ConsoleColor Black) homeCell = (" ▪ ", ColorMap[homeOwner.Value], ConsoleColor.Black);
+            return homeCell;
+        }
+
+        if (IsPath(row, col))
+        {
+            (string, ConsoleColor DarkGray, ConsoleColor Black) pathCell = (" · ", ConsoleColor.DarkGray, ConsoleColor.Black);
+            return pathCell;
+        }
+
+        // Di luar cross / base — biarkan kosong supaya cross-shape menonjol.
+        (string, ConsoleColor, ConsoleColor) emptyCell = ("   ", ConsoleColor.Black, ConsoleColor.Black);
+        return emptyCell;
+    }
+
+    /// <summary>Pusat 3×3: panah masuk per warna + bintang finish di tengah.</summary>
+    private static (string symbol, ConsoleColor foreground, ConsoleColor background) RenderFinishCell(int row, int col)
+    {
+        if (col == 7 && row == 7)
+        {
+            (string, ConsoleColor Magenta, ConsoleColor Black) centerStarCell = (" ★ ", ConsoleColor.Magenta, ConsoleColor.Black);
+            return centerStarCell;
+        }
+        if (col == 7 && row == 6)
+        {
+            (string, ConsoleColor Blue, ConsoleColor Black) blueArrowCell = (" ▼ ", ConsoleColor.Blue, ConsoleColor.Black);
+            return blueArrowCell;
+        }
+        if (col == 7 && row == 8)
+        {
+            (string, ConsoleColor Green, ConsoleColor Black) greenArrowCell = (" ▲ ", ConsoleColor.Green, ConsoleColor.Black);
+            return greenArrowCell;
+        }
+        if (col == 6 && row == 7)
+        {
+            (string, ConsoleColor Red, ConsoleColor Black) redArrowCell = (" ▶ ", ConsoleColor.Red, ConsoleColor.Black);
+            return redArrowCell;
+        }
+        if (col == 8 && row == 7)
+        {
+            (string, ConsoleColor Yellow, ConsoleColor Black) yellowArrowCell = (" ◀ ", ConsoleColor.Yellow, ConsoleColor.Black);
+            return yellowArrowCell;
+        }
+        (string, ConsoleColor DarkMagenta, ConsoleColor Black) defaultFinishCell = (" ◇ ", ConsoleColor.DarkMagenta, ConsoleColor.Black);
+        return defaultFinishCell;
+    }
+
+    /// <summary>Cetak baris keterangan simbol di bawah papan.</summary>
+    private void DrawLegend()
+    {
+        Console.Write("  ");
+        WriteColored("★", ConsoleColor.Red);
+        Console.Write(" Start (safe)   ");
+        WriteColored("★", ConsoleColor.White);
+        Console.Write(" Star (safe)   ");
+        WriteColored("▪", ConsoleColor.White);
+        Console.Write(" Home   ");
+        WriteColored("·", ConsoleColor.DarkGray);
+        Console.WriteLine(" Path");
+        Console.Write("  ");
+        WriteColored("○", ConsoleColor.White);
+        Console.Write(" Slot base   ");
+        WriteColored("★", ConsoleColor.Magenta);
+        Console.WriteLine(" Finish");
+        Console.WriteLine();
     }
 
     /// <summary>Dapatkan index bidak dalam daftar milik warnanya.</summary>
@@ -517,10 +735,12 @@ public class GameUI
         {
             if (ReferenceEquals(list[i], piece))
             {
-                return i;
+                int foundIndex = i;
+                return foundIndex;
             }
         }
-        return 0;
+        int defaultIndex = 0;
+        return defaultIndex;
     }
 
     /// <summary>Helper untuk welcome screen.</summary>
