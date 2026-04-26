@@ -4,16 +4,8 @@ using Ludo.Backend.Models;
 
 namespace Ludo.UI;
 
-/// <summary>
-/// GameUI — antarmuka konsol interaktif untuk permainan Ludo.
-///
-/// LAYOUT PAPAN 15×15 (X=col, Y=row):
-///   Setiap sel digambar 3 karakter lebar: "XX " atau simbol warna.
-///   Area base di sudut, jalur normal (+), area finish (F) di tengah.
-/// </summary>
 public class GameUI
 {
-    // ── Dependencies (Dependency Injection) ─────────────────────────────────
     private readonly IGameController _gameController;
 
     public GameUI(IGameController gameController)
@@ -21,7 +13,6 @@ public class GameUI
         _gameController = gameController ?? throw new ArgumentNullException(nameof(gameController));
     }
 
-    // ── Konstanta warna ──────────────────────────────────────────────────────
     private static readonly Dictionary<PlayerColor, ConsoleColor> ColorMap = new()
     {
         { PlayerColor.Red,    ConsoleColor.Red     },
@@ -30,7 +21,6 @@ public class GameUI
         { PlayerColor.Green,  ConsoleColor.Green   },
     };
 
-    // Simbol inisial per warna
     private static readonly Dictionary<PlayerColor, char> ColorSymbol = new()
     {
         { PlayerColor.Red,    'R' },
@@ -39,7 +29,6 @@ public class GameUI
         { PlayerColor.Green,  'G' },
     };
 
-    // Background gelap untuk area base (kontras dengan teks bidak)
     private static readonly Dictionary<PlayerColor, ConsoleColor> BaseBgMap = new()
     {
         { PlayerColor.Red,    ConsoleColor.DarkRed    },
@@ -48,9 +37,6 @@ public class GameUI
         { PlayerColor.Green,  ConsoleColor.DarkGreen  },
     };
 
-    // ── Entry point ──────────────────────────────────────────────────────────
-
-    /// <summary>Mulai UI, buat pemain, jalankan game loop.</summary>
     public void Run()
     {
         Console.CursorVisible = false;
@@ -60,11 +46,9 @@ public class GameUI
         {
             DisplayWelcome();
 
-            // Setup pemain (input dari user)
             int numPlayers = AskNumberOfPlayers();
             List<IPlayer> players = CreatePlayers(numPlayers);
 
-            // Subscribe events (backend sudah di-inject via constructor)
             _gameController.OnPieceCaptured += OnPieceCapturedHandler;
             _gameController.onGameFinished += OnGameFinishedHandler;
 
@@ -78,7 +62,6 @@ public class GameUI
                 ShowVictory(_gameController);
             }
 
-            // Mulai game dengan players yang sudah dibuat
             _gameController.StartGame(players);
 
             GameLoop(_gameController);
@@ -89,8 +72,6 @@ public class GameUI
             Console.ResetColor();
         }
     }
-
-    // ── Game Loop ─────────────────────────────────────────────────────────────
 
     private void GameLoop(IGameController gameController)
     {
@@ -106,11 +87,9 @@ public class GameUI
             Console.WriteLine("— tekan [ENTER] untuk lempar dadu...");
             WaitEnter();
 
-            // Roll dadu
             int roll = gameController.RollDice();
             DrawDice(roll);
 
-            // Dapatkan bidak yang bisa bergerak
             IList<IPiece> movable = gameController.GetMovablePieces();
 
             if (movable.Count == 0)
@@ -121,7 +100,6 @@ public class GameUI
                 continue;
             }
 
-            // Pilih bidak
             IPiece chosen;
             if (movable.Count == 1)
             {
@@ -134,12 +112,10 @@ public class GameUI
                 chosen = PickPiece(gameController, movable, currentPlayer);
             }
 
-            // Gerakkan
             gameController.MovePiece(currentPlayer, chosen, roll);
 
             if (!gameController.IsGameOver)
             {
-                // Tampilkan info gerak
                 string stepInfo;
 
                 if (chosen.State == PieceState.Finished)
@@ -158,8 +134,6 @@ public class GameUI
             }
         }
     }
-
-    // ── Input Helper ─────────────────────────────────────────────────────────
 
     private IPiece PickPiece(IGameController gameController, IList<IPiece> movable, IPlayer player)
     {
@@ -241,14 +215,10 @@ public class GameUI
         return players;
     }
 
-    // ── Board Rendering ───────────────────────────────────────────────────────
-
-    /// <summary>Gambar papan Ludo 15×15 dengan posisi semua bidak saat ini.</summary>
     private void DrawBoard(IGameController gameController)
     {
         Dictionary<(int X, int Y), List<(string display, ConsoleColor color)>> pieceMap = BuildPieceMap(gameController);
 
-        // Header kolom: setiap nomor menempati 3 char ("XX ") supaya lurus dengan sel.
         string colHeader = "";
         for (int col = 0; col < Board.Size; col++)
         {
@@ -277,14 +247,12 @@ public class GameUI
         DrawLegend();
     }
 
-    /// <summary>Render satu sel: bidak (jika ada) atau tile kosong dengan style sesuai tipenya.</summary>
     private void DrawCell(int row, int col, Dictionary<(int X, int Y), List<(string display, ConsoleColor color)>> pieceMap)
     {
         (string symbol, ConsoleColor foreground, ConsoleColor background) tile = RenderEmptyCell(row, col);
 
         if (pieceMap.TryGetValue((col, row), out List<(string display, ConsoleColor color)>? pieces) && pieces.Count > 0)
         {
-            // Bidak digambar di atas bg tile (mis. bidak di base tetap berlatar warna basenya).
             if (pieces.Count == 1)
             {
                 WriteCell($"{pieces[0].display} ", pieces[0].color, tile.background);
@@ -300,7 +268,6 @@ public class GameUI
         }
     }
 
-    /// <summary>Tulis teks dengan warna foreground + background, lalu reset.</summary>
     private static void WriteCell(string text, ConsoleColor foreground, ConsoleColor background)
     {
         Console.ForegroundColor = foreground;
@@ -309,7 +276,6 @@ public class GameUI
         Console.ResetColor();
     }
 
-    /// <summary>Bangun map posisi → daftar (simbol, warna) dari semua bidak aktif/finished.</summary>
     private Dictionary<(int X, int Y), List<(string display, ConsoleColor color)>> BuildPieceMap(IGameController gameController)
     {
         Dictionary<(int, int), List<(string, ConsoleColor)>> map = new Dictionary<(int, int), List<(string, ConsoleColor)>>();
@@ -335,8 +301,6 @@ public class GameUI
         return map;
     }
 
-    // ── Status Panel ──────────────────────────────────────────────────────────
-
     private void DrawStatus(IGameController gameController)
     {
         Console.WriteLine("  ┌─── STATUS PEMAIN ────────────────────────────────────┐");
@@ -358,7 +322,6 @@ public class GameUI
 
             IList<IPiece> pieces = allPieces[player.Color];
 
-            // Hitung berapa bidak finished
             int finished = 0;
             int active = 0;
             int inBase = 0;
@@ -390,8 +353,6 @@ public class GameUI
         Console.WriteLine();
     }
 
-    // ── Dice Display ──────────────────────────────────────────────────────────
-
     private void DrawDice(int roll)
     {
         string[] faces =
@@ -417,8 +378,6 @@ public class GameUI
         }
         Console.WriteLine();
     }
-
-    // ── Event Handlers ────────────────────────────────────────────────────────
 
     private void ShowCapture(IPiece attacker, IPiece victim)
     {
@@ -452,7 +411,6 @@ public class GameUI
         Console.WriteLine();
         Console.WriteLine("  🏆 PEMENANG: ");
 
-        // Cari pemenang = pemain yang semua bidaknya Finished
         foreach (IPlayer player in gameController.GetPlayers())
         {
             IList<IPiece> pieces = gameController.GetAllPieces()[player.Color];
@@ -467,8 +425,6 @@ public class GameUI
         Console.WriteLine("  Tekan [ENTER] untuk keluar...");
         Console.ReadLine();
     }
-
-    // ── Utilities ────────────────────────────────────────────────────────────
 
     private static void WriteColored(string text, ConsoleColor color)
     {
@@ -487,16 +443,12 @@ public class GameUI
         Console.ReadLine();
     }
 
-    // ── Tile Layout Helpers ──────────────────────────────────────────────────
-
-    /// <summary>Apakah sel termasuk area finish 3×3 di pusat papan.</summary>
     private static bool IsCenterFinish(int row, int col)
     {
         bool isCenterFinish = row >= 6 && row <= 8 && col >= 6 && col <= 8;
         return isCenterFinish;
     }
 
-    /// <summary>Pemilik area base 4×4 di sudut, atau null bila bukan base.</summary>
     private static PlayerColor? GetBaseOwner(int row, int col)
     {
         if (row >= 1 && row <= 4 && col >= 1 && col <= 4)
@@ -523,7 +475,6 @@ public class GameUI
         return noOwner;
     }
 
-    /// <summary>Apakah sel ini adalah salah satu dari 4 slot bidak di dalam area base (inner 2×2 di tengah).</summary>
     private static bool IsBaseSlot(int row, int col)
     {
         if (!GetBaseOwner(row, col).HasValue)
@@ -537,7 +488,6 @@ public class GameUI
         return isInnerSlot;
     }
 
-    /// <summary>Pemilik kotak start (safe square) atau null.</summary>
     private static PlayerColor? GetStartOwner(int row, int col)
     {
         if (col == 1 && row == 6)
@@ -564,34 +514,32 @@ public class GameUI
         return noOwner;
     }
 
-    /// <summary>4 star square netral (8 langkah setelah tiap start) — juga safe.</summary>
     private static bool IsNeutralSafeStar(int row, int col)
     {
         if (col == 6 && row == 2)
         {
-            bool isRedSafeStar = true;  // 8 dari Red
+            bool isRedSafeStar = true;
             return isRedSafeStar;
         }
         if (col == 12 && row == 6)
         {
-            bool isBlueSafeStar = true;  // 8 dari Blue
+            bool isBlueSafeStar = true;
             return isBlueSafeStar;
         }
         if (col == 8 && row == 12)
         {
-            bool isYellowSafeStar = true;  // 8 dari Yellow
+            bool isYellowSafeStar = true;
             return isYellowSafeStar;
         }
         if (col == 2 && row == 8)
         {
-            bool isGreenSafeStar = true;  // 8 dari Green
+            bool isGreenSafeStar = true;
             return isGreenSafeStar;
         }
         bool isNotSafeStar = false;
         return isNotSafeStar;
     }
 
-    /// <summary>Pemilik tile home column (5 sel sebelum finish), atau null.</summary>
     private static PlayerColor? GetHomeOwner(int row, int col)
     {
         if (row == 7 && col >= 1 && col <= 5)
@@ -618,7 +566,6 @@ public class GameUI
         return noOwner;
     }
 
-    /// <summary>Apakah sel ini path normal di cross-shape (di luar finish/base/home/start).</summary>
     private static bool IsPath(int row, int col)
     {
         bool inCross = (row >= 6 && row <= 8) || (col >= 6 && col <= 8);
@@ -626,7 +573,6 @@ public class GameUI
         return isPath;
     }
 
-    /// <summary>Tentukan simbol + warna fg/bg untuk sel kosong berdasarkan tipenya.</summary>
     private static (string symbol, ConsoleColor foreground, ConsoleColor background) RenderEmptyCell(int row, int col)
     {
         if (IsCenterFinish(row, col))
@@ -670,12 +616,10 @@ public class GameUI
             return pathCell;
         }
 
-        // Di luar cross / base — biarkan kosong supaya cross-shape menonjol.
         (string, ConsoleColor, ConsoleColor) emptyCell = ("   ", ConsoleColor.Black, ConsoleColor.Black);
         return emptyCell;
     }
 
-    /// <summary>Pusat 3×3: panah masuk per warna + bintang finish di tengah.</summary>
     private static (string symbol, ConsoleColor foreground, ConsoleColor background) RenderFinishCell(int row, int col)
     {
         if (col == 7 && row == 7)
@@ -707,7 +651,6 @@ public class GameUI
         return defaultFinishCell;
     }
 
-    /// <summary>Cetak baris keterangan simbol di bawah papan.</summary>
     private void DrawLegend()
     {
         Console.Write("  ");
@@ -727,7 +670,6 @@ public class GameUI
         Console.WriteLine();
     }
 
-    /// <summary>Dapatkan index bidak dalam daftar milik warnanya.</summary>
     private static int PieceIndex(IGameController gameController, IPiece piece)
     {
         IList<IPiece> list = gameController.GetAllPieces()[piece.Color];
@@ -743,7 +685,6 @@ public class GameUI
         return defaultIndex;
     }
 
-    /// <summary>Helper untuk welcome screen.</summary>
     private static void DisplayWelcome()
     {
         Console.Clear();

@@ -17,7 +17,6 @@ public interface IGameController
     IPlayer GetCurrentPlayer();
     IList<IPiece> GetMovablePieces();
 
-    IPiece ChoosePiece(IList<IPiece> movablePieces);
     void MovePiece(IPlayer player, IPiece piece, int steps);
 
     void NextTurn();
