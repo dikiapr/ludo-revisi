@@ -23,24 +23,24 @@ public class GameController : IGameController
 
     private static readonly Dictionary<PlayerColor, Position[]> HomeColumns = BuildHomeColumns();
 
-    private static readonly Dictionary<PlayerColor, int> StartOffsets = new()
+    private static readonly Dictionary<PlayerColor, Position> StartOffsets = new()
     {
-        { PlayerColor.Red,    0  },
-        { PlayerColor.Blue,   13 },
-        { PlayerColor.Yellow, 26 },
-        { PlayerColor.Green,  39 },
+        { PlayerColor.Red,    new Position(1,  6)  },
+        { PlayerColor.Blue,   new Position(8,  1)  },
+        { PlayerColor.Yellow, new Position(13, 8)  },
+        { PlayerColor.Green,  new Position(6,  13) },
     };
 
-    private static readonly HashSet<(int X, int Y)> SafeSquares = new()
+    private static readonly List<Position> SafeSquares = new()
     {
-        (1,  6),
-        (8,  1),
-        (13, 8),
-        (6,  13),
-        (6,  2),
-        (12, 6),
-        (8,  12),
-        (2,  8),
+        new Position(1,  6),
+        new Position(8,  1),
+        new Position(13, 8),
+        new Position(6,  13),
+        new Position(6,  2),
+        new Position(12, 6),
+        new Position(8,  12),
+        new Position(2,  8),
     };
 
     private static readonly Dictionary<PlayerColor, Position[]> BasePositions = new()
@@ -53,8 +53,8 @@ public class GameController : IGameController
 
     public GameController(IBoard board, IDice dice)
     {
-        _board = board ?? throw new ArgumentNullException(nameof(board));
-        _dice = dice ?? throw new ArgumentNullException(nameof(dice));
+        _board = board;
+        _dice = dice;
         _players = new List<IPlayer>();
         _pieces = new Dictionary<PlayerColor, List<IPiece>>();
     }
@@ -63,7 +63,7 @@ public class GameController : IGameController
     {
         if (players == null || players.Count < 2 || players.Count > 4)
         {
-            throw new ArgumentException("Ludo memerlukan 2-4 pemain.", nameof(players));
+            return;
         }
         _players.Clear();
         _players.AddRange(players);
@@ -80,9 +80,9 @@ public class GameController : IGameController
             _pieces[player.Color] = list;
         }
 
-        foreach ((PlayerColor color, List<IPiece> pieces) in _pieces)
+        foreach (PlayerColor color in _pieces.Keys)
         {
-            foreach (IPiece piece in pieces)
+            foreach (IPiece piece in _pieces[color])
             {
                 AddPieceToTile(piece.CurrentPosition, piece);
             }
@@ -212,7 +212,17 @@ public class GameController : IGameController
             return homePosition;
         }
 
-        int trackIndex = (StartOffsets[color] + step) % 52;
+        Position startPos = StartOffsets[color];
+        int startIndex = 0;
+        for (int i = 0; i < MainTrack.Length; i++)
+        {
+            if (MainTrack[i].X == startPos.X && MainTrack[i].Y == startPos.Y)
+            {
+                startIndex = i;
+                break;
+            }
+        }
+        int trackIndex = (startIndex + step) % 52;
         Position raw = MainTrack[trackIndex];
         Position trackPosition = new Position(raw.X, raw.Y);
         return trackPosition;
@@ -221,9 +231,17 @@ public class GameController : IGameController
     private void CheckCapture(IPlayer currentPlayer, IPiece movingPiece)
     {
         Position position = movingPiece.CurrentPosition;
-        (int X, int Y) posKey = (position.X, position.Y);
 
-        if (SafeSquares.Contains(posKey))
+        bool isSafe = false;
+        foreach (Position safePos in SafeSquares)
+        {
+            if (safePos.X == position.X && safePos.Y == position.Y)
+            {
+                isSafe = true;
+                break;
+            }
+        }
+        if (isSafe)
         {
             return;
         }
@@ -336,11 +354,6 @@ public class GameController : IGameController
 
         track.Add(new Position(0, 7));
         track.Add(new Position(0, 6));
-
-        if (track.Count != 52)
-        {
-            throw new InvalidOperationException($"Main track harus 52 kotak, tapi {track.Count}.");
-        }
 
         Position[] result = track.ToArray();
         return result;
