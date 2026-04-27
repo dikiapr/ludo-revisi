@@ -217,7 +217,7 @@ public class GameUI
 
     private void DrawBoard(IGameController gameController)
     {
-        Dictionary<(int X, int Y), List<(string display, ConsoleColor color)>> pieceMap = BuildPieceMap(gameController);
+        Dictionary<string, List<PieceDisplay>> pieceMap = BuildPieceMap(gameController);
 
         string colHeader = "";
         for (int col = 0; col < Board.Size; col++)
@@ -247,24 +247,28 @@ public class GameUI
         DrawLegend();
     }
 
-    private void DrawCell(int row, int col, Dictionary<(int X, int Y), List<(string display, ConsoleColor color)>> pieceMap)
+    private void DrawCell(int row, int col, Dictionary<string, List<PieceDisplay>> pieceMap)
     {
-        (string symbol, ConsoleColor foreground, ConsoleColor background) tile = RenderEmptyCell(row, col);
+        CellInfo tile = RenderEmptyCell(row, col);
 
-        if (pieceMap.TryGetValue((col, row), out List<(string display, ConsoleColor color)>? pieces) && pieces.Count > 0)
+        string key = col + "," + row;
+
+        if (pieceMap.ContainsKey(key) && pieceMap[key].Count > 0)
         {
+            List<PieceDisplay> pieces = pieceMap[key];
+
             if (pieces.Count == 1)
             {
-                WriteCell($"{pieces[0].display} ", pieces[0].color, tile.background);
+                WriteCell(pieces[0].Display + " ", pieces[0].Color, tile.Background);
             }
             else
             {
-                WriteCell($"+{pieces.Count} ", ConsoleColor.White, tile.background);
+                WriteCell("+" + pieces.Count + " ", ConsoleColor.White, tile.Background);
             }
         }
         else
         {
-            WriteCell(tile.symbol, tile.foreground, tile.background);
+            WriteCell(tile.Symbol, tile.Foreground, tile.Background);
         }
     }
 
@@ -276,12 +280,15 @@ public class GameUI
         Console.ResetColor();
     }
 
-    private Dictionary<(int X, int Y), List<(string display, ConsoleColor color)>> BuildPieceMap(IGameController gameController)
+    private Dictionary<string, List<PieceDisplay>> BuildPieceMap(IGameController gameController)
     {
-        Dictionary<(int, int), List<(string, ConsoleColor)>> map = new Dictionary<(int, int), List<(string, ConsoleColor)>>();
+        Dictionary<string, List<PieceDisplay>> map = new Dictionary<string, List<PieceDisplay>>();
 
-        foreach ((PlayerColor color, IList<IPiece>? pieces) in gameController.GetAllPieces())
+        foreach (KeyValuePair<PlayerColor, IList<IPiece>> entry in gameController.GetAllPieces())
         {
+            PlayerColor color = entry.Key;
+            IList<IPiece> pieces = entry.Value;
+
             char sym = ColorSymbol[color];
             ConsoleColor cc = ColorMap[color];
 
@@ -292,9 +299,17 @@ public class GameUI
                 {
                     // Bidak di base tetap ditampilkan di posisinya
                 }
-                (int X, int Y) pos = (piece.CurrentPosition.X, piece.CurrentPosition.Y);
-                if (!map.ContainsKey(pos)) map[pos] = new();
-                map[pos].Add(($"{sym}{i + 1}", cc));
+
+                int posX = piece.CurrentPosition.X;
+                int posY = piece.CurrentPosition.Y;
+                string key = posX + "," + posY;
+
+                if (!map.ContainsKey(key))
+                {
+                    map[key] = new List<PieceDisplay>();
+                }
+
+                map[key].Add(new PieceDisplay($"{sym}{i + 1}", cc));
             }
         }
 
@@ -573,11 +588,11 @@ public class GameUI
         return isPath;
     }
 
-    private static (string symbol, ConsoleColor foreground, ConsoleColor background) RenderEmptyCell(int row, int col)
+    private static CellInfo RenderEmptyCell(int row, int col)
     {
         if (IsCenterFinish(row, col))
         {
-            (string symbol, ConsoleColor foreground, ConsoleColor background) finishCell = RenderFinishCell(row, col);
+            CellInfo finishCell = RenderFinishCell(row, col);
             return finishCell;
         }
 
@@ -586,68 +601,68 @@ public class GameUI
         {
             ConsoleColor background = BaseBgMap[baseOwner.Value];
             string symbol = IsBaseSlot(row, col) ? " ○ " : "   ";
-            (string symbol, ConsoleColor White, ConsoleColor background) baseCell = (symbol, ConsoleColor.White, background);
+            CellInfo baseCell = new CellInfo(symbol, ConsoleColor.White, background);
             return baseCell;
         }
 
         PlayerColor? startOwner = GetStartOwner(row, col);
         if (startOwner.HasValue)
         {
-            (string, ConsoleColor, ConsoleColor Black) startCell = (" ★ ", ColorMap[startOwner.Value], ConsoleColor.Black);
+            CellInfo startCell = new CellInfo(" ★ ", ColorMap[startOwner.Value], ConsoleColor.Black);
             return startCell;
         }
 
         if (IsNeutralSafeStar(row, col))
         {
-            (string, ConsoleColor White, ConsoleColor Black) safeStarCell = (" ★ ", ConsoleColor.White, ConsoleColor.Black);
+            CellInfo safeStarCell = new CellInfo(" ★ ", ConsoleColor.White, ConsoleColor.Black);
             return safeStarCell;
         }
 
         PlayerColor? homeOwner = GetHomeOwner(row, col);
         if (homeOwner.HasValue)
         {
-            (string, ConsoleColor, ConsoleColor Black) homeCell = (" ▪ ", ColorMap[homeOwner.Value], ConsoleColor.Black);
+            CellInfo homeCell = new CellInfo(" ▪ ", ColorMap[homeOwner.Value], ConsoleColor.Black);
             return homeCell;
         }
 
         if (IsPath(row, col))
         {
-            (string, ConsoleColor DarkGray, ConsoleColor Black) pathCell = (" · ", ConsoleColor.DarkGray, ConsoleColor.Black);
+            CellInfo pathCell = new CellInfo(" · ", ConsoleColor.DarkGray, ConsoleColor.Black);
             return pathCell;
         }
 
-        (string, ConsoleColor, ConsoleColor) emptyCell = ("   ", ConsoleColor.Black, ConsoleColor.Black);
+        CellInfo emptyCell = new CellInfo("   ", ConsoleColor.Black, ConsoleColor.Black);
         return emptyCell;
     }
 
-    private static (string symbol, ConsoleColor foreground, ConsoleColor background) RenderFinishCell(int row, int col)
+    private static CellInfo RenderFinishCell(int row, int col)
     {
         if (col == 7 && row == 7)
         {
-            (string, ConsoleColor Magenta, ConsoleColor Black) centerStarCell = (" ★ ", ConsoleColor.Magenta, ConsoleColor.Black);
+            CellInfo centerStarCell = new CellInfo(" ★ ", ConsoleColor.Magenta, ConsoleColor.Black);
             return centerStarCell;
         }
         if (col == 7 && row == 6)
         {
-            (string, ConsoleColor Blue, ConsoleColor Black) blueArrowCell = (" ▼ ", ConsoleColor.Blue, ConsoleColor.Black);
+            CellInfo blueArrowCell = new CellInfo(" ▼ ", ConsoleColor.Blue, ConsoleColor.Black);
             return blueArrowCell;
         }
         if (col == 7 && row == 8)
         {
-            (string, ConsoleColor Green, ConsoleColor Black) greenArrowCell = (" ▲ ", ConsoleColor.Green, ConsoleColor.Black);
+            CellInfo greenArrowCell = new CellInfo(" ▲ ", ConsoleColor.Green, ConsoleColor.Black);
             return greenArrowCell;
         }
         if (col == 6 && row == 7)
         {
-            (string, ConsoleColor Red, ConsoleColor Black) redArrowCell = (" ▶ ", ConsoleColor.Red, ConsoleColor.Black);
+            CellInfo redArrowCell = new CellInfo(" ▶ ", ConsoleColor.Red, ConsoleColor.Black);
             return redArrowCell;
         }
         if (col == 8 && row == 7)
         {
-            (string, ConsoleColor Yellow, ConsoleColor Black) yellowArrowCell = (" ◀ ", ConsoleColor.Yellow, ConsoleColor.Black);
+            CellInfo yellowArrowCell = new CellInfo(" ◀ ", ConsoleColor.Yellow, ConsoleColor.Black);
             return yellowArrowCell;
         }
-        (string, ConsoleColor DarkMagenta, ConsoleColor Black) defaultFinishCell = (" ◇ ", ConsoleColor.DarkMagenta, ConsoleColor.Black);
+        CellInfo defaultFinishCell = new CellInfo(" ◇ ", ConsoleColor.DarkMagenta, ConsoleColor.Black);
         return defaultFinishCell;
     }
 
