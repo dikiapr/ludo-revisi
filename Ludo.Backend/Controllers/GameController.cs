@@ -51,12 +51,12 @@ public class GameController : IGameController
         { PlayerColor.Green,  new[] { new Position(2,11),  new Position(3,11),  new Position(2,12),  new Position(3,12)  } },
     };
 
-    public GameController(IBoard board, IDice dice)
+    public GameController(IBoard board, IDice dice, List<IPlayer> players, Dictionary<PlayerColor, List<IPiece>> pieces)
     {
         _board = board;
         _dice = dice;
-        _players = new List<IPlayer>();
-        _pieces = new Dictionary<PlayerColor, List<IPiece>>();
+        _players = players;
+        _pieces = pieces;
     }
 
     public void StartGame(List<IPlayer> players)
