@@ -9,7 +9,7 @@ namespace Ludo.Tests;
 [TestFixture]
 public class GameController_RollDiceShould
 {
-private GameController _gameController;
+    private GameController _gameController;
 
     [SetUp]
     public void Setup()
@@ -21,7 +21,7 @@ private GameController _gameController;
             new Player("Red", PlayerColor.Red),
             new Player("Blue", PlayerColor.Blue),
         };
-        Dictionary<PlayerColor, List<IPiece>> pieces = new();
+        Dictionary<PlayerColor, List<IPiece>> pieces = new Dictionary<PlayerColor, List<IPiece>>();
 
         _gameController = new GameController(board, dice, players, pieces);
     }
@@ -30,6 +30,8 @@ private GameController _gameController;
     public void RollDiceShouldReturnOneToSix()
     {
         // Arrange
+        int expectedMin = 1;
+        int expectedMax = 6;
         List<int> results = new List<int>();
 
         // Act
@@ -39,13 +41,15 @@ private GameController _gameController;
         }
 
         // Assert
-        Assert.That(results, Has.All.InRange(1, 6));
+        Assert.That(results, Has.All.InRange(expectedMin, expectedMax));
     }
 
     [Test]
     public void RollDiceShouldNotReturnOutOfRange()
     {
         // Arrange
+        int expectedMin = 1;
+        int expectedMax = 6;
         List<int> results = new List<int>();
 
         // Act
@@ -55,7 +59,7 @@ private GameController _gameController;
         }
 
         // Assert
-        Assert.That(results, Has.None.LessThan(1));
-        Assert.That(results, Has.None.GreaterThan(6));
+        Assert.That(results, Has.None.LessThan(expectedMin));
+        Assert.That(results, Has.None.GreaterThan(expectedMax));
     }
 }
