@@ -55,7 +55,7 @@ public class GameController : IGameController
     {
         _board = board;
         _dice = dice;
-        _players = players;
+        _players = new List<IPlayer>(players);
         _pieces = pieces;
     }
 
@@ -199,7 +199,11 @@ public class GameController : IGameController
 
     public IDictionary<PlayerColor, IList<IPiece>> GetAllPieces()
     {
-        IDictionary<PlayerColor, IList<IPiece>> allPieces = _pieces.ToDictionary(kvp => kvp.Key, kvp => (IList<IPiece>)kvp.Value);
+        Dictionary<PlayerColor, IList<IPiece>> allPieces = new Dictionary<PlayerColor, IList<IPiece>>();
+        foreach (KeyValuePair<PlayerColor, List<IPiece>> entry in _pieces)
+        {
+            allPieces[entry.Key] = entry.Value;
+        }
         return allPieces;
     }
 

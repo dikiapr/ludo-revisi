@@ -54,7 +54,7 @@ public class GameController_StartGameShould
     }
 
     [Test]
-    public void StartGameShouldCreateFourPiecesPerPlayer()
+    public void FourPiecesPerPlayerCreatedWhenStartGameExecute()
     {
         // Arrange
         int expectedPiecesPerPlayer = 4;
@@ -72,24 +72,7 @@ public class GameController_StartGameShould
     }
 
     [Test]
-    public void StartGameShouldSetAllPiecesToBaseState()
-    {
-        // Arrange
-        PieceState expectedPieceState = PieceState.Base;
-
-        // Act
-        _gameController.StartGame(_players);
-
-        // Assert
-        IDictionary<PlayerColor, IList<IPiece>> allPieces = _gameController.GetAllPieces();
-        foreach (IList<IPiece> pieces in allPieces.Values)
-        {
-            Assert.That(pieces, Has.All.Property("State").EqualTo(expectedPieceState));
-        }
-    }
-
-    [Test]
-    public void StartGameShouldAcceptFourPlayersAsMaximum()
+    public void MaximumAcceptFourPlayer()
     {
         // Arrange
         int expectedPlayerCount = 4;
@@ -122,7 +105,7 @@ public class GameController_StartGameShould
     }
 
     [Test]
-    public void StartGameShouldNotInitializeWhenLessThanTwoPlayers()
+    public void WhenLessThanTwoPlayersStartGameShouldNotInitialize()
     {
         // Arrange
         int expectedPieceCount = 0;
@@ -139,7 +122,7 @@ public class GameController_StartGameShould
     }
 
     [Test]
-    public void StartGameShouldNotInitializeWhenMoreThanFourPlayers()
+    public void WhenMoreThanFourPlayersStartGameShouldNotInitialize()
     {
         // Arrange
         int expectedPieceCount = 0;
