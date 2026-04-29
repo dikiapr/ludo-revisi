@@ -9,14 +9,13 @@ namespace Ludo.Tests;
 public class GameController_MovePieceShould
 {
     private GameController _gameController;
-    private FakeDice _fakeDice;
     private List<IPlayer> _players;
 
     [SetUp]
     public void Setup()
     {
         IBoard board = new Board();
-        _fakeDice = new FakeDice();
+        IDice dice = new Dice();
         _players = new List<IPlayer>
         {
             new Player("Red", PlayerColor.Red),
@@ -24,7 +23,7 @@ public class GameController_MovePieceShould
         };
         Dictionary<PlayerColor, List<IPiece>> pieces = new Dictionary<PlayerColor, List<IPiece>>();
 
-        _gameController = new GameController(board, _fakeDice, _players, pieces);
+        _gameController = new GameController(board, dice, _players, pieces);
         _gameController.StartGame(_players);
     }
 
@@ -126,8 +125,6 @@ public class GameController_MovePieceShould
         IPiece redPiece = _gameController.GetAllPieces()[PlayerColor.Red][0];
         IPiece bluePiece = _gameController.GetAllPieces()[PlayerColor.Blue][0];
 
-        // Red di step 13 posisi (8,1), Blue di step 1 posisi (8,2)
-        // Red maju 1 step ke (8,2) menangkap Blue
         redPiece.State = PieceState.Active;
         redPiece.CurrentStep = 13;
         redPiece.CurrentPosition = new Position(8, 1);
