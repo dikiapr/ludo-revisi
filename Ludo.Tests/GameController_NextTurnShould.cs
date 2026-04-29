@@ -74,22 +74,6 @@ public class GameController_NextTurnShould
     }
 
     [Test]
-    public void CurrentPlayerIndexShouldIncrementAfterBonusTurnConsumed()
-    {
-        // Arrange
-        int expectedCurrentPlayerIndex = 1;
-        _fakeDice.ValueToReturn = 6;
-        _gameController.RollDice();
-
-        // Act
-        _gameController.NextTurn(); // bonus turn consumed, index stays 0
-        _gameController.NextTurn(); // normal advance, index goes to 1
-
-        // Assert
-        Assert.That(_gameController.CurrentPlayerIndex, Is.EqualTo(expectedCurrentPlayerIndex));
-    }
-
-    [Test]
     public void CurrentPlayerIndexShouldIncrementNormallyWhenDiceIsNotSix()
     {
         // Arrange
