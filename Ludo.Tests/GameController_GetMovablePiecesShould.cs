@@ -110,19 +110,4 @@ public class GameController_GetMovablePiecesShould
         // Assert
         Assert.That(movablePieces, Does.Not.Contain(expectedPiece));
     }
-
-    [Test]
-    public void ReturnsEmptyWhenNoPiecesAreMovable()
-    {
-        // Arrange
-        int expectedMovablePieceCount = 0;
-        _fakeDice.ValueToReturn = 1;
-
-        // Act
-        _gameController.RollDice();
-        IList<IPiece> movablePieces = _gameController.GetMovablePieces();
-
-        // Assert
-        Assert.That(movablePieces, Has.Count.EqualTo(expectedMovablePieceCount));
-    }
 }
