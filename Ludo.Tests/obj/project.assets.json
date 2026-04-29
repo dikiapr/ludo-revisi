@@ -1285,11 +1285,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\BoardGame\\ludo-revisi\\Ludo.Tests\\Ludo.Tests.csproj",
+      "projectUniqueName": "C:\\BoardGame\\ludo-revisi\\Ludo.Tests\\Ludo.Tests.csproj",
       "projectName": "Ludo.Tests",
-      "projectPath": "c:\\BoardGame\\ludo-revisi\\Ludo.Tests\\Ludo.Tests.csproj",
+      "projectPath": "C:\\BoardGame\\ludo-revisi\\Ludo.Tests\\Ludo.Tests.csproj",
       "packagesPath": "C:\\Users\\Bootcamp-Diki\\.nuget\\packages\\",
-      "outputPath": "c:\\BoardGame\\ludo-revisi\\Ludo.Tests\\obj\\",
+      "outputPath": "C:\\BoardGame\\ludo-revisi\\Ludo.Tests\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -1311,8 +1311,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "c:\\BoardGame\\ludo-revisi\\Ludo.Backend\\Ludo.Backend.csproj": {
-              "projectPath": "c:\\BoardGame\\ludo-revisi\\Ludo.Backend\\Ludo.Backend.csproj"
+            "C:\\BoardGame\\ludo-revisi\\Ludo.Backend\\Ludo.Backend.csproj": {
+              "projectPath": "C:\\BoardGame\\ludo-revisi\\Ludo.Backend\\Ludo.Backend.csproj"
             }
           }
         }

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Hd5WjtbomEM=",
+  "dgSpecHash": "fSV3J71XRfA=",
   "success": true,
-  "projectFilePath": "c:\\BoardGame\\ludo-revisi\\Ludo.Tests\\Ludo.Tests.csproj",
+  "projectFilePath": "C:\\BoardGame\\ludo-revisi\\Ludo.Tests\\Ludo.Tests.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Bootcamp-Diki\\.nuget\\packages\\coverlet.collector\\6.0.0\\coverlet.collector.6.0.0.nupkg.sha512",
     "C:\\Users\\Bootcamp-Diki\\.nuget\\packages\\microsoft.codecoverage\\17.8.0\\microsoft.codecoverage.17.8.0.nupkg.sha512",
