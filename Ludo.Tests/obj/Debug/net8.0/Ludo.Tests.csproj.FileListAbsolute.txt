@@ -309,3 +309,4 @@ C:\BoardGame\ludo-revisi\Ludo.Tests\obj\Debug\net8.0\ref\Ludo.Tests.dll
 C:\BoardGame\ludo-revisi\Ludo.Tests\bin\Debug\net8.0\Serilog.dll
 C:\BoardGame\ludo-revisi\Ludo.Tests\bin\Debug\net8.0\Serilog.Formatting.Compact.dll
 C:\BoardGame\ludo-revisi\Ludo.Tests\bin\Debug\net8.0\Serilog.Sinks.File.dll
+C:\BoardGame\ludo-revisi\Ludo.Tests\bin\Debug\net8.0\Serilog.Sinks.Console.dll

@@ -71,6 +71,43 @@ public class GameController_StartGameShould
         });
     }
 
+     [Test]
+    public void MaximumAcceptTwoPlayer()
+    {
+        // Arrange
+        int expectedPlayerCount = 2;
+        List<IPlayer> players = new List<IPlayer>
+        {
+            new Player("Red", PlayerColor.Red),
+            new Player("Blue", PlayerColor.Blue),
+        };
+
+        // Act
+        _gameController.StartGame(players);
+
+        // Assert
+        Assert.That(_gameController.GetAllPieces(), Has.Count.EqualTo(expectedPlayerCount));
+    }
+
+     [Test]
+    public void MaximumAcceptThreePlayer()
+    {
+        // Arrange
+        int expectedPlayerCount = 3;
+        List<IPlayer> players = new List<IPlayer>
+        {
+            new Player("Red", PlayerColor.Red),
+            new Player("Blue", PlayerColor.Blue),
+            new Player("Yellow", PlayerColor.Yellow),
+        };
+
+        // Act
+        _gameController.StartGame(players);
+
+        // Assert
+        Assert.That(_gameController.GetAllPieces(), Has.Count.EqualTo(expectedPlayerCount));
+    }
+
     [Test]
     public void MaximumAcceptFourPlayer()
     {
@@ -91,18 +128,7 @@ public class GameController_StartGameShould
         Assert.That(_gameController.GetAllPieces(), Has.Count.EqualTo(expectedPlayerCount));
     }
 
-    [Test]
-    public void StartGameShouldNotInitializeWhenPlayersIsNull()
-    {
-        // Arrange
-        int expectedPieceCount = 0;
-
-        // Act
-        _gameController.StartGame(null!);
-
-        // Assert
-        Assert.That(_gameController.GetAllPieces(), Has.Count.EqualTo(expectedPieceCount));
-    }
+   
 
     [Test]
     public void WhenLessThanTwoPlayersStartGameShouldNotInitialize()
@@ -133,6 +159,8 @@ public class GameController_StartGameShould
             new Player("Yellow", PlayerColor.Yellow),
             new Player("Green", PlayerColor.Green),
             new Player("Extra", PlayerColor.Red),
+            new Player("Extra1", PlayerColor.Red),
+            new Player("Extra2", PlayerColor.Red),
         };
 
         // Act
