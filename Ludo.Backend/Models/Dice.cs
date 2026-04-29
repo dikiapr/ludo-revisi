@@ -11,11 +11,6 @@ public class Dice : IDice
         _random = new Random();
     }
 
-    public Dice(int seed)
-    {
-        _random = new Random(seed);
-    }
-
     public int Roll()
     {
         return _random.Next(1, 7);
