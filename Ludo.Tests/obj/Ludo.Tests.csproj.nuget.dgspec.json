@@ -1,25 +1,32 @@
 {
   "format": 1,
   "restore": {
-    "/Users/diki/Formulatrix/ludo-revisi/Ludo.Tests/Ludo.Tests.csproj": {}
+    "C:\\BoardGame\\ludo-revisi\\Ludo.Tests\\Ludo.Tests.csproj": {}
   },
   "projects": {
-    "/Users/diki/Formulatrix/ludo-revisi/Ludo.Backend/Ludo.Backend.csproj": {
+    "C:\\BoardGame\\ludo-revisi\\Ludo.Backend\\Ludo.Backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/diki/Formulatrix/ludo-revisi/Ludo.Backend/Ludo.Backend.csproj",
+        "projectUniqueName": "C:\\BoardGame\\ludo-revisi\\Ludo.Backend\\Ludo.Backend.csproj",
         "projectName": "Ludo.Backend",
-        "projectPath": "/Users/diki/Formulatrix/ludo-revisi/Ludo.Backend/Ludo.Backend.csproj",
-        "packagesPath": "/Users/diki/.nuget/packages/",
-        "outputPath": "/Users/diki/Formulatrix/ludo-revisi/Ludo.Backend/obj/",
+        "projectPath": "C:\\BoardGame\\ludo-revisi\\Ludo.Backend\\Ludo.Backend.csproj",
+        "packagesPath": "C:\\Users\\Bootcamp-Diki\\.nuget\\packages\\",
+        "outputPath": "C:\\BoardGame\\ludo-revisi\\Ludo.Backend\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/Users/diki/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Bootcamp-Diki\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -43,6 +50,24 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "Serilog": {
+              "target": "Package",
+              "version": "[4.3.1, )"
+            },
+            "Serilog.Formatting.Compact": {
+              "target": "Package",
+              "version": "[3.0.0, )"
+            },
+            "Serilog.Sinks.Console": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "Serilog.Sinks.File": {
+              "target": "Package",
+              "version": "[7.0.0, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -57,11 +82,15 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[8.0.24, 8.0.24]"
+              "version": "[8.0.22, 8.0.22]"
             },
             {
               "name": "Microsoft.NETCore.App.Ref",
-              "version": "[8.0.24, 8.0.24]"
+              "version": "[8.0.22, 8.0.22]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[8.0.22, 8.0.22]"
             }
           ],
           "frameworkReferences": {
@@ -69,34 +98,41 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "/Users/diki/Formulatrix/ludo-revisi/Ludo.Tests/Ludo.Tests.csproj": {
+    "C:\\BoardGame\\ludo-revisi\\Ludo.Tests\\Ludo.Tests.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/diki/Formulatrix/ludo-revisi/Ludo.Tests/Ludo.Tests.csproj",
+        "projectUniqueName": "C:\\BoardGame\\ludo-revisi\\Ludo.Tests\\Ludo.Tests.csproj",
         "projectName": "Ludo.Tests",
-        "projectPath": "/Users/diki/Formulatrix/ludo-revisi/Ludo.Tests/Ludo.Tests.csproj",
-        "packagesPath": "/Users/diki/.nuget/packages/",
-        "outputPath": "/Users/diki/Formulatrix/ludo-revisi/Ludo.Tests/obj/",
+        "projectPath": "C:\\BoardGame\\ludo-revisi\\Ludo.Tests\\Ludo.Tests.csproj",
+        "packagesPath": "C:\\Users\\Bootcamp-Diki\\.nuget\\packages\\",
+        "outputPath": "C:\\BoardGame\\ludo-revisi\\Ludo.Tests\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/Users/diki/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Bootcamp-Diki\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "/Users/diki/Formulatrix/ludo-revisi/Ludo.Backend/Ludo.Backend.csproj": {
-                "projectPath": "/Users/diki/Formulatrix/ludo-revisi/Ludo.Backend/Ludo.Backend.csproj"
+              "C:\\BoardGame\\ludo-revisi\\Ludo.Backend\\Ludo.Backend.csproj": {
+                "projectPath": "C:\\BoardGame\\ludo-revisi\\Ludo.Backend\\Ludo.Backend.csproj"
               }
             }
           }
@@ -152,11 +188,15 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[8.0.24, 8.0.24]"
+              "version": "[8.0.22, 8.0.22]"
             },
             {
               "name": "Microsoft.NETCore.App.Ref",
-              "version": "[8.0.24, 8.0.24]"
+              "version": "[8.0.22, 8.0.22]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[8.0.22, 8.0.22]"
             }
           ],
           "frameworkReferences": {
@@ -164,7 +204,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

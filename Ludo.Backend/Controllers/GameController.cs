@@ -1,6 +1,7 @@
 using Ludo.Backend.Enums;
 using Ludo.Backend.Interfaces;
 using Ludo.Backend.Models;
+using Serilog;
 
 namespace Ludo.Backend.Controllers;
 
@@ -92,6 +93,11 @@ public class GameController : IGameController
         IsGameOver = false;
         _bonusTurn = false;
         _lastDiceRoll = 0;
+
+        Log.Information(
+        "Game started with {PlayerCount} players: {Players}",
+        _players.Count,
+        _players.Select(player => player.Name));
     }
 
     public int RollDice()
@@ -101,6 +107,10 @@ public class GameController : IGameController
         {
             _bonusTurn = true;
         }
+        Log.Information("Player {Player} rolled {Roll}{BonusTurn}",
+            GetCurrentPlayer().Name,
+            _lastDiceRoll,
+            _bonusTurn ? " (bonus turn)" : string.Empty);
         return _lastDiceRoll;
     }
 
@@ -150,6 +160,8 @@ public class GameController : IGameController
             piece.CurrentStep = 0;
             piece.State = PieceState.Active;
             piece.CurrentPosition = GetBoardPosition(piece.Color, 0);
+            Log.Information("Player {Player} moved piece {Color} out of base to ({X},{Y})",
+                player.Name, piece.Color, piece.CurrentPosition.X, piece.CurrentPosition.Y);
         }
         else
         {
@@ -162,14 +174,22 @@ public class GameController : IGameController
                 piece.State = PieceState.Finished;
                 _board.FinishedPieces.Add(piece);
                 RemovePieceFromTile(oldPos, piece);
+                Log.Information("Player {Player} piece {Color} reached Finish", player.Name, piece.Color);
 
                 if (HasPlayerWon(player))
                 {
                     IsGameOver = true;
+                    Log.Information("Player {Player} won the game!", player.Name);
                     onGameFinished?.Invoke();
                 }
                 return;
             }
+
+            Log.Information("Player {Player} moved piece {Color} from ({OldX},{OldY}) to ({NewX},{NewY})",
+                player.Name, piece.Color,
+                oldPos.X, oldPos.Y,
+                piece.CurrentPosition.X, piece.CurrentPosition.Y,
+                newStep);
         }
 
         RemovePieceFromTile(oldPos, piece);
@@ -186,9 +206,11 @@ public class GameController : IGameController
         if (_bonusTurn)
         {
             _bonusTurn = false;
+            Log.Information("Player {Player} uses bonus turn (rolled 6)", GetCurrentPlayer().Name);
             return;
         }
         CurrentPlayerIndex = (CurrentPlayerIndex + 1) % _players.Count;
+        Log.Information("Turn changed to player {Player}", GetCurrentPlayer().Name);
     }
 
     public IList<IPlayer> GetPlayers()
@@ -283,6 +305,8 @@ public class GameController : IGameController
                     piece.State = PieceState.Base;
 
                     AddPieceToTile(piece.CurrentPosition, piece);
+                    Log.Information("Player {Attacker} captured {Victim}'s piece at ({X},{Y}), sent back to base",
+                        currentPlayer.Name, player.Name, position.X, position.Y);
                     OnPieceCaptured?.Invoke(movingPiece, piece);
                 }
             }
