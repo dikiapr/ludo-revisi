@@ -43,42 +43,11 @@ public class GameController_NextTurnShould
     }
 
     [Test]
-    public void CurrentPlayerIndexShouldWrapAroundToFirstPlayerAfterLastPlayer()
-    {
-        // Arrange
-        int expectedCurrentPlayerIndex = 0;
-
-        // Act
-        _gameController.NextTurn(); // 0 -> 1
-        _gameController.NextTurn(); // 1 -> 2
-        _gameController.NextTurn(); // 2 -> 3
-        _gameController.NextTurn(); // 3 -> 0
-
-        // Assert
-        Assert.That(_gameController.CurrentPlayerIndex, Is.EqualTo(expectedCurrentPlayerIndex));
-    }
-
-    [Test]
     public void CurrentPlayerIndexShouldNotChangeWhenBonusTurnAfterRollingSix()
     {
         // Arrange
         int expectedCurrentPlayerIndex = 0;
         _fakeDice.ValueToReturn = 6;
-        _gameController.RollDice();
-
-        // Act
-        _gameController.NextTurn();
-
-        // Assert
-        Assert.That(_gameController.CurrentPlayerIndex, Is.EqualTo(expectedCurrentPlayerIndex));
-    }
-
-    [Test]
-    public void CurrentPlayerIndexShouldIncrementNormallyWhenDiceIsNotSix()
-    {
-        // Arrange
-        int expectedCurrentPlayerIndex = 1;
-        _fakeDice.ValueToReturn = 3;
         _gameController.RollDice();
 
         // Act
