@@ -27,7 +27,7 @@ public class GameController_RollDiceShould
     }
 
     [Test]
-    public void RollDiceShouldReturnOneToSix()
+    public void RollDice_WhenCall_ShouldReturnOneToSix()
     {
         // Arrange
         int expectedMin = 1;
@@ -45,7 +45,7 @@ public class GameController_RollDiceShould
     }
 
     [Test]
-    public void RollDiceShouldNotReturnOutOfRange()
+    public void RollDice_WhenCall_ShouldNotReturnOutOfRange()
     {
         // Arrange
         int expectedMin = 1;

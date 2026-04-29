@@ -7,9 +7,28 @@ using Serilog;
 using Serilog.Formatting.Compact;
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .WriteTo.File(new CompactJsonFormatter(), "logs/game-log.txt", rollingInterval: RollingInterval.Day)
-    .CreateLogger(); 
+    .MinimumLevel.Debug()
+    // Console sink with structured output - great for development
+    .WriteTo.Console(outputTemplate: 
+        "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] " +
+        "{Message:lj} {Properties:j}{NewLine}{Exception}")
+    
+    // File sink with JSON format - perfect for log aggregation tools
+    .WriteTo.File("logs/application-.log",
+        rollingInterval: RollingInterval.Day,
+        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] " +
+                       "{Message:lj} {Properties:j}{NewLine}{Exception}")
+    
+    // File sink with JSON format for structured data analysis
+    .WriteTo.File(new Serilog.Formatting.Json.JsonFormatter(), "logs/application-json-.log",
+        rollingInterval: RollingInterval.Day)
+    
+    // Enrich logs with additional context information
+    .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .Enrich.WithProcessId()
+    .Enrich.WithThreadId()
+    .CreateLogger();
 
 try
 {
