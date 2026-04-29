@@ -29,7 +29,7 @@ public class GameController_GetAllPiecesShould
     }
 
     [Test]
-    public void ReturnEmptyDictionaryBeforeStartGame()
+    public void GetAllPieces_WhenGameNotStarted_ShouldReturnEmptyDictionary()
     {
         // Arrange
         int expectedCount = 0;
@@ -42,7 +42,7 @@ public class GameController_GetAllPiecesShould
     }
 
     [Test]
-    public void ReturnFourEntriesAfterStartGameWithFourPlayers()
+    public void GetAllPieces_WhenStartedWithFourPlayers_ShouldReturnFourEntries()
     {
         // Arrange
         int expectedCount = 4;
@@ -56,7 +56,7 @@ public class GameController_GetAllPiecesShould
     }
 
     [Test]
-    public void ReturnFourPiecesPerPlayerAfterStartGame()
+    public void GetAllPieces_WhenGameStarted_ShouldReturnFourPiecesPerPlayer()
     {
         // Arrange
         int expectedPiecesPerPlayer = 4;
@@ -76,7 +76,7 @@ public class GameController_GetAllPiecesShould
     }
 
     [Test]
-    public void AllPiecesStartInBaseState()
+    public void GetAllPieces_WhenGameStarted_ShouldReturnAllPiecesInBaseState()
     {
         // Arrange
         _gameController.StartGame(_players);
@@ -92,7 +92,7 @@ public class GameController_GetAllPiecesShould
     }
 
     [Test]
-    public void AllPiecesStartWithStepMinusOne()
+    public void GetAllPieces_WhenGameStarted_ShouldReturnAllPiecesWithStepMinusOne()
     {
         // Arrange
         _gameController.StartGame(_players);
@@ -108,7 +108,7 @@ public class GameController_GetAllPiecesShould
     }
 
     [Test]
-    public void EachPieceColorMatchesItsPlayerColor()
+    public void GetAllPieces_WhenGameStarted_ShouldReturnPiecesMatchingPlayerColor()
     {
         // Arrange
         _gameController.StartGame(_players);
@@ -124,7 +124,7 @@ public class GameController_GetAllPiecesShould
     }
 
     [Test]
-    public void ReturnTwoEntriesAfterStartGameWithTwoPlayers()
+    public void GetAllPieces_WhenStartedWithTwoPlayers_ShouldReturnTwoEntries()
     {
         // Arrange
         int expectedCount = 2;
@@ -143,7 +143,7 @@ public class GameController_GetAllPiecesShould
     }
 
     [Test]
-    public void ContainsAllPlayerColorKeysAfterStartGame()
+    public void GetAllPieces_WhenGameStarted_ShouldContainAllPlayerColorKeys()
     {
         // Arrange
         _gameController.StartGame(_players);

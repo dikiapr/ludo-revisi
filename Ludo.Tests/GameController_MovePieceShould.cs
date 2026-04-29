@@ -28,7 +28,7 @@ public class GameController_MovePieceShould
     }
 
     [Test]
-    public void BasePieceShouldBecomeActiveAfterMove()
+    public void MovePiece_WhenBasePieceMovedWithSix_ShouldChangePieceToActive()
     {
         // Arrange
         PieceState expectedState = PieceState.Active;
@@ -43,7 +43,7 @@ public class GameController_MovePieceShould
     }
 
     [Test]
-    public void BasePieceShouldBeAtStartPositionAfterMove()
+    public void MovePiece_WhenBasePieceMovedWithSix_ShouldPlacePieceAtStartPosition()
     {
         // Arrange
         Position expectedPosition = new Position(1, 6);
@@ -62,7 +62,7 @@ public class GameController_MovePieceShould
     }
 
     [Test]
-    public void ActivePieceCurrentStepShouldIncreaseAfterMove()
+    public void MovePiece_WhenActivePieceMoved_ShouldIncreaseCurrentStep()
     {
         // Arrange
         int steps = 3;
@@ -80,7 +80,7 @@ public class GameController_MovePieceShould
     }
 
     [Test]
-    public void ActivePieceShouldBecomeFinishedWhenReachingStep56()
+    public void MovePiece_WhenActivePieceReachesStepFiftySix_ShouldChangePieceToFinished()
     {
         // Arrange
         PieceState expectedState = PieceState.Finished;
@@ -97,7 +97,7 @@ public class GameController_MovePieceShould
     }
 
     [Test]
-    public void IsGameOverWhenAllPiecesFinished()
+    public void MovePiece_WhenAllPiecesFinished_ShouldSetIsGameOverToTrue()
     {
         // Arrange
         IPlayer currentPlayer = _gameController.GetCurrentPlayer();
@@ -117,7 +117,7 @@ public class GameController_MovePieceShould
     }
 
     [Test]
-    public void EnemyPieceShouldGoBackToBaseWhenCaptured()
+    public void MovePiece_WhenEnemyPieceIsCaptured_ShouldSendEnemyPieceToBase()
     {
         // Arrange
         PieceState expectedEnemyState = PieceState.Base;

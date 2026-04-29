@@ -28,7 +28,7 @@ public class GameController_StartGameShould
     }
 
     [Test]
-    public void CurrentPlayerIndexMustZeroWhenStartGameExecute()
+    public void StartGame_WhenExecuted_ShouldSetCurrentPlayerIndexToZero()
     {
         // Arrange
         int expectedCurrentPlayerIndex = 0;
@@ -41,7 +41,7 @@ public class GameController_StartGameShould
     }
 
     [Test]
-    public void IsGameOverMustFalseWhenStartGameExecute()
+    public void StartGame_WhenExecuted_ShouldSetIsGameOverToFalse()
     {
         // Arrange
         bool expectedIsGameOver = false;
@@ -54,7 +54,7 @@ public class GameController_StartGameShould
     }
 
     [Test]
-    public void FourPiecesPerPlayerCreatedWhenStartGameExecute()
+    public void StartGame_WhenExecuted_ShouldCreateFourPiecesPerPlayer()
     {
         // Arrange
         int expectedPiecesPerPlayer = 4;
@@ -72,7 +72,7 @@ public class GameController_StartGameShould
     }
 
      [Test]
-    public void MaximumAcceptTwoPlayer()
+    public void StartGame_WhenTwoPlayersProvided_ShouldInitialize()
     {
         // Arrange
         int expectedPlayerCount = 2;
@@ -90,7 +90,7 @@ public class GameController_StartGameShould
     }
 
      [Test]
-    public void MaximumAcceptThreePlayer()
+    public void StartGame_WhenThreePlayersProvided_ShouldInitialize()
     {
         // Arrange
         int expectedPlayerCount = 3;
@@ -109,7 +109,7 @@ public class GameController_StartGameShould
     }
 
     [Test]
-    public void MaximumAcceptFourPlayer()
+    public void StartGame_WhenFourPlayersProvided_ShouldInitialize()
     {
         // Arrange
         int expectedPlayerCount = 4;
@@ -131,7 +131,7 @@ public class GameController_StartGameShould
    
 
     [Test]
-    public void WhenLessThanTwoPlayersStartGameShouldNotInitialize()
+    public void StartGame_WhenLessThanTwoPlayersProvided_ShouldNotInitialize()
     {
         // Arrange
         int expectedPieceCount = 0;
@@ -148,7 +148,7 @@ public class GameController_StartGameShould
     }
 
     [Test]
-    public void WhenMoreThanFourPlayersStartGameShouldNotInitialize()
+    public void StartGame_WhenMoreThanFourPlayersProvided_ShouldNotInitialize()
     {
         // Arrange
         int expectedPieceCount = 0;

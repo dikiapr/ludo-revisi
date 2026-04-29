@@ -30,7 +30,7 @@ public class GameController_GetCurrentPlayerShould
     }
 
     [Test]
-    public void ReturnFirstPlayerAtGameStart()
+    public void GetCurrentPlayer_WhenGameJustStarted_ShouldReturnFirstPlayer()
     {
         // Arrange
         IPlayer expectedPlayer = _players[0];
@@ -43,7 +43,7 @@ public class GameController_GetCurrentPlayerShould
     }
 
         [Test]
-    public void ReturnSecondPlayerAfterOneNextTurn()
+    public void GetCurrentPlayer_WhenOneNextTurnCalled_ShouldReturnSecondPlayer()
     {
         // Arrange
         IPlayer expectedPlayer = _players[1];
@@ -57,7 +57,7 @@ public class GameController_GetCurrentPlayerShould
     }
 
     [Test]
-    public void ReturnThirdPlayerAfterTwoNextTurns()
+    public void GetCurrentPlayer_WhenTwoNextTurnsCalled_ShouldReturnThirdPlayer()
     {
         // Arrange
         IPlayer expectedPlayer = _players[2];
@@ -72,7 +72,7 @@ public class GameController_GetCurrentPlayerShould
     }
 
     [Test]
-    public void ReturnFourthPlayerAfterThreeNextTurns()
+    public void GetCurrentPlayer_WhenThreeNextTurnsCalled_ShouldReturnFourthPlayer()
     {
         // Arrange
         IPlayer expectedPlayer = _players[3];
@@ -88,7 +88,7 @@ public class GameController_GetCurrentPlayerShould
     }
 
     [Test]
-    public void ReturnFirstPlayerColorIsRed()
+    public void GetCurrentPlayer_WhenFirstPlayerIsCurrent_ShouldReturnRedColor()
     {
         // Arrange
         PlayerColor expectedColor = PlayerColor.Red;
@@ -101,7 +101,7 @@ public class GameController_GetCurrentPlayerShould
     }
 
     [Test]
-    public void ReturnSecondPlayerColorIsBlue()
+    public void GetCurrentPlayer_WhenSecondPlayerIsCurrent_ShouldReturnBlueColor()
     {
         // Arrange
         PlayerColor expectedColor = PlayerColor.Blue;
@@ -115,7 +115,7 @@ public class GameController_GetCurrentPlayerShould
     }
 
     [Test]
-    public void ReturnThirdPlayerColorIsGreen()
+    public void GetCurrentPlayer_WhenThirdPlayerIsCurrent_ShouldReturnGreenColor()
     {
         // Arrange
         PlayerColor expectedColor = PlayerColor.Green;
@@ -130,7 +130,7 @@ public class GameController_GetCurrentPlayerShould
     }
 
     [Test]
-    public void ReturnFourthPlayerColorIsYellow()
+    public void GetCurrentPlayer_WhenFourthPlayerIsCurrent_ShouldReturnYellowColor()
     {
         // Arrange
         PlayerColor expectedColor = PlayerColor.Yellow;

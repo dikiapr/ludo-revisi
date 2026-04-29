@@ -29,7 +29,7 @@ public class GameController_GetPlayersShould
     }
 
     [Test]
-    public void ReturnCorrectPlayerCount()
+    public void GetPlayers_WhenFourPlayersProvided_ShouldReturnCorrectPlayerCount()
     {
         // Arrange
         int expectedCount = 4;
@@ -42,7 +42,7 @@ public class GameController_GetPlayersShould
     }
 
     [Test]
-    public void ReturnPlayersInCorrectOrder()
+    public void GetPlayers_WhenCalled_ShouldReturnPlayersInCorrectOrder()
     {
         // Act
         IList<IPlayer> players = _gameController.GetPlayers();
@@ -58,7 +58,7 @@ public class GameController_GetPlayersShould
     }
 
     [Test]
-    public void ReturnPlayersWithCorrectColors()
+    public void GetPlayers_WhenCalled_ShouldReturnPlayersWithCorrectColors()
     {
         // Act
         IList<IPlayer> players = _gameController.GetPlayers();
@@ -74,7 +74,7 @@ public class GameController_GetPlayersShould
     }
 
     [Test]
-    public void ReturnPlayersWithCorrectNames()
+    public void GetPlayers_WhenCalled_ShouldReturnPlayersWithCorrectNames()
     {
         // Act
         IList<IPlayer> players = _gameController.GetPlayers();
@@ -90,7 +90,7 @@ public class GameController_GetPlayersShould
     }
 
     [Test]
-    public void ReturnReadOnlyList()
+    public void GetPlayers_WhenCalled_ShouldReturnReadOnlyList()
     {
         // Act
         IList<IPlayer> players = _gameController.GetPlayers();
@@ -100,7 +100,7 @@ public class GameController_GetPlayersShould
     }
 
     [Test]
-    public void ReturnTwoPlayersWhenOnlyTwoPlayersAdded()
+    public void GetPlayers_WhenOnlyTwoPlayersProvided_ShouldReturnTwoPlayers()
     {
         // Arrange
         int expectedCount = 2;

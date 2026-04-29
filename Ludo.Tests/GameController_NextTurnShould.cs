@@ -30,7 +30,7 @@ public class GameController_NextTurnShould
     }
 
     [Test]
-    public void CurrentPlayerIndexShouldIncrementAfterNextTurn()
+    public void NextTurn_WhenCalled_ShouldIncrementCurrentPlayerIndex()
     {
         // Arrange
         int expectedCurrentPlayerIndex = 1;
@@ -43,7 +43,7 @@ public class GameController_NextTurnShould
     }
 
     [Test]
-    public void CurrentPlayerIndexShouldNotChangeWhenBonusTurnAfterRollingSix()
+    public void NextTurn_WhenBonusTurnEarnedByRollingSix_ShouldKeepCurrentPlayerIndex()
     {
         // Arrange
         int expectedCurrentPlayerIndex = 0;

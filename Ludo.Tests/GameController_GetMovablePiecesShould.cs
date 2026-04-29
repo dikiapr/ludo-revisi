@@ -29,7 +29,7 @@ public class GameController_GetMovablePiecesShould
     }
 
     [Test]
-    public void BasePieceIsMovableWhenDiceRollIsSix()
+    public void GetMovablePieces_WhenDiceRollIsSix_ShouldReturnAllBasePiecesAsMovable()
     {
         // Arrange
         int expectedMovablePieceCount = 4;
@@ -44,7 +44,7 @@ public class GameController_GetMovablePiecesShould
     }
 
     [Test]
-    public void BasePieceIsNotMovableWhenDiceRollIsNotSix()
+    public void GetMovablePieces_WhenDiceRollIsNotSix_ShouldReturnNoMovablePieces()
     {
         // Arrange
         int expectedMovablePieceCount = 0;
@@ -59,7 +59,7 @@ public class GameController_GetMovablePiecesShould
     }
 
     [Test]
-    public void ActivePieceIsMovableWhenStepsDoNotExceedFiftySix()
+    public void GetMovablePieces_WhenStepsDoNotExceedFiftySix_ShouldIncludeActivePiece()
     {
         // Arrange
         _fakeDice.ValueToReturn = 6;
@@ -77,7 +77,7 @@ public class GameController_GetMovablePiecesShould
     }
 
     [Test]
-    public void ActivePieceIsNotMovableWhenStepsExceedFiftySix()
+    public void GetMovablePieces_WhenStepsExceedFiftySix_ShouldExcludeActivePiece()
     {
         // Arrange
         _fakeDice.ValueToReturn = 6;
@@ -95,7 +95,7 @@ public class GameController_GetMovablePiecesShould
     }
 
     [Test]
-    public void FinishedPieceIsNeverMovable()
+    public void GetMovablePieces_WhenPieceIsFinished_ShouldExcludePiece()
     {
         // Arrange
         _fakeDice.ValueToReturn = 6;

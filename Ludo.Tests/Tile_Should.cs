@@ -8,7 +8,7 @@ namespace Ludo.Tests;
 public class Tile_Should
 {
     [Test]
-    public void ReturnCorrectPosition()
+    public void Position_WhenPositionProvided_ShouldReturnCorrectPosition()
     {
         // Arrange
         Position expectedPosition = new Position(3, 5);
@@ -26,7 +26,7 @@ public class Tile_Should
     }
 
     [Test]
-    public void ReturnNormalType()
+    public void Type_WhenCreatedWithNormalType_ShouldReturnNormal()
     {
         // Arrange
         Tile tile = new(new Position(0, 0), TileTypes.Normal);
@@ -39,7 +39,7 @@ public class Tile_Should
     }
 
     [Test]
-    public void ReturnBaseType()
+    public void Type_WhenCreatedWithBaseType_ShouldReturnBase()
     {
         // Arrange
         Tile tile = new(new Position(2, 2), TileTypes.Base);
@@ -52,7 +52,7 @@ public class Tile_Should
     }
 
     [Test]
-    public void ReturnFinishType()
+    public void Type_WhenCreatedWithFinishType_ShouldReturnFinish()
     {
         // Arrange
         Tile tile = new(new Position(7, 7), TileTypes.Finish);
@@ -65,7 +65,7 @@ public class Tile_Should
     }
 
     [Test]
-    public void PiecesIsEmptyOnCreation()
+    public void Pieces_WhenTileCreated_ShouldBeEmpty()
     {
         // Arrange
         Tile tile = new(new Position(0, 0), TileTypes.Normal);
